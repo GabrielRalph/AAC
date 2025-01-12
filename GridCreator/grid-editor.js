@@ -1,10 +1,9 @@
 import {SvgPlus} from "../SvgPlus/4.js"
-import * as Topics from "./new_data_structure.js"
+import * as Topics from "../Firebase/topics.js"
 import { CommsGrid, GridIconSymbol } from "./grid.js";
 import { SearchWidget } from "./symbol-search.js";
 import { WBlock, ToggleInput, ResizeWatcher} from "../Utilities/shared.js";
-import { initialise } from "../firebase-client.js";
-import { Icon } from "../icons.js";
+import { Icon } from "../Icons/icons.js";
 
 class EditPanel extends SvgPlus {
     _topic = null;
@@ -274,7 +273,7 @@ class TopicsList extends SvgPlus {
     constructor() {
         super("div");
         this.class = "topics-list"
-        this.createChild("img", {src: "./logo-banner.svg"})
+        this.createChild("img", {src: "./Assets/logo-banner.svg"})
         let wblock = this.createChild(WBlock);
         let r = wblock.head.createChild("div", {class: "row topics-head bigger"});
         r.createChild("span", {content: "Topics"})
@@ -473,5 +472,4 @@ export class GridEditor extends ResizeWatcher {
     }
 }
 
-initialise();
 

@@ -1,7 +1,7 @@
-import * as firebase from "../firebase-client.js"
+import * as firebase from "../Firebase/firebase-client.js"
 import { WBlock, ToggleInput } from "../Utilities/shared.js";
 import {SvgPlus} from "../SvgPlus/4.js"
-import {Icon} from "../icons.js"
+import {Icon} from "../Icons/icons.js"
 
 const MAX_FILE_SIZE = 50 * 1024;
 const STATUS_TEXT = {

@@ -31,7 +31,7 @@
  * @property {string} uid
  */
 
-import {push, set, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, get} from "../firebase-client.js"
+import {push, set, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, get} from "./firebase-client.js"
 /**
  * @type {Object.<GridSize, function>}
  */

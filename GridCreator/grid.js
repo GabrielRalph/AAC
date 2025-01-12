@@ -1,6 +1,6 @@
 import { SvgPlus, Vector } from "../SvgPlus/4.js";
 import { ResizeWatcher } from "../Utilities/shared.js";
-import * as Topics from "./topics.js";
+import * as Topics from "../Firebase/topics.js";
 
 function range(end) {
     return new Array(end).fill(0).map((...a)=>a[1])

@@ -1,161 +1,82 @@
-import {SvgPlus} from "../SvgPlus/4.js"
-import {SvgPath, DPath} from "../SvgPlus/svg-path.js"
-
-async function next(){return new Promise((resolve, reject) => {window.requestAnimationFrame(resolve)})}
-
+const FREQ = 500;
+const XML = "http://www.w3.org/2000/svg";
+const LURPS2 = {	
+    L0: [[[50.24,128.4],[44.28,151.8],[7.245,159.7],[13.25,190.6]],[[50.58,127.1],[47.17,152.2],[16.54,164.9],[19.80,193.2]],[[50.80,126.4],[47.34,151.1],[26.95,169.7],[26.54,195.5]],[[51.20,125.4],[45.07,149.5],[37.23,173.2],[33.26,197.9]],[[51.75,124.2],[40.79,148.5],[46.47,175.5],[39.55,200.6]]],
+	R0: [[[84.76,136.2],[79.15,170.1],[33.12,160.4],[25.66,191.7]],[[84.42,137.5],[76.67,165.9],[40.21,167.5],[32.11,195.2]],[[84.20,138.2],[74.25,162.5],[47.77,174.1],[38.54,198.8]],[[83.80,139.2],[70.72,160.2],[56.08,180.2],[44.88,202.4]],[[83.25,140.4],[66.79,159.1],[65.17,185.2],[51.09,205.3]]],
+	L1: [[[79.11,140.3],[97.68,153.6],[92.92,178.6],[71.59,185.8]],[[79.22,140.5],[96.86,154.4],[92.09,178.9],[75.05,190.9]],[[79.33,140.7],[97.26,155.8],[89.20,179.9],[78.66,196.7]],[[79.43,140.9],[98.09,157.6],[85.16,182.5],[82.64,203.0]],[[79.52,141.1],[98.76,159.8],[80.83,186.9],[86.98,209.7]]],
+	R1: [[[110.7,124.3],[129.9,154.3],[111.0,195.4],[74.88,197.9]],[[110.6,124.1],[127.2,153.0],[112.8,190.4],[81.64,201.5]],[[110.5,123.9],[126.3,152.6],[111.7,185.7],[88.12,204.8]],[[110.4,123.7],[126.7,152.8],[108.6,182.5],[94.15,207.8]],[[110.3,123.5],[128.0,153.3],[104.4,181.3],[99.42,210.4]]],
+	L2: [[[110.3,117.8],[99.61,165.4],[157.2,159.7],[169.3,192.4]],[[110.1,119.9],[105.5,159.1],[149.7,165.6],[160.4,196.0]],[[110.2,122.0],[112.0,154.3],[141.6,171.3],[151.5,199.6]],[[110.5,124.2],[119.5,151.4],[132.6,176.9],[142.4,203.8]],[[111.1,126.4],[127.0,151.0],[122.3,181.2],[133.5,207.2]]],
+	R2: [[[145.3,123.4],[134.6,154.6],[188.9,155.3],[181.5,189.8]],[[145.5,121.3],[135.9,151.6],[177.0,163.0],[172.6,193.5]],[[145.4,119.2],[139.7,147.9],[164.4,169.1],[163.8,197.2]],[[145.1,117.0],[146.5,145.0],[152.3,172.5],[154.4,200.4]],[[144.5,114.8],[154.1,144.4],[142.7,174.2],[145.6,204.0]]]
+}
+async function next() {return new Promise((r) => {window.requestAnimationFrame(r)});}
 function lurp(a, t) {return a[0].mul(1-t).add(a[1].mul(t))}
-
-let style = new SvgPlus("style");
-style.props = {"type": "text/css"}
-style.innerHTML = `
-splash-screen {
-    --main-color: #8F53C9;
-    --eyes-background: white;
+function lurpc([c1, c2], t) {return c1.map((v, i) => v.map((n, j) => n * (1-t) + c2[i][j] * t)); }
+function lurpt(t, g) {
+    let idx = t * 4;
+    let is = Math.floor(idx);
+    let ie = Math.ceil(idx);
+    g.innerHTML =[0,1,2].map((ti) => {
+        let [c1, c2] = ["R", "L"].map(k => lurpc([LURPS2[k+ti][is], LURPS2[k+ti][ie]], idx-is));
+        return `<path d = "M${c1[0]}C${c1[1]},${c1[2]},${c1[3]}A6,6,0,0,1,${c2[3]}C${c2[2]},${c2[1]},${c2[0]}" class="tenticles-tapper"></path>`
+    }).join("\n")
 }
-.eyes{
-    fill: var(--eyes-background);
-}
-.tenticles-tapper{
-    fill:var(--main-color);
-}
-.hidden-path{
-    opacity:0;
-    fill:none;
-}
-.tenticles-path{
-    fill:none;
-    stroke:var(--main-color);
-    stroke-miterlimit:10;
-    stroke-width: 12; 
-    stroke-linecap: round;
-}`
-
-const template = `<svg viewBox="0 0 195.4 230">
-<g id="tenticles">
-	<g>
-		<path class="tenticles-path" d="M67.5,132.3c0,0-3.5,17.2-22.5,24.1c-23.4,8.5-25.6,36.4-25.6,36.4"/>
-		<path class="hidden-path" d="M67.5,132.3c0,0-11.5,19.7-9.5,37.5c2.8,24.7-6.8,37.5-6.8,37.5"/>
-	</g>
-	<g>
-		<path class="tenticles-path" d="M94.9,132.3c7.1,14.1,13,20.9,8.1,35.2c-6.2,18-31.3,24.7-31.3,24.7"/>
-		<path class="hidden-path" d="M94.9,132.3c10,16.9,7.8,29.6,3.5,42.1c-6,17.3,0,42.1,0,42.1"/>
-	</g>
-	<g>
-		<path class="tenticles-path" d="M127.8,120.6c0,0-6.4,31.2,22.6,38.5c22,5.5,25.4,33.8,25.4,33.8"/>
-		<path class="hidden-path" d="M127.8,120.6c0,0,14,27.5,4.4,50.8c-8,19.5-1.1,39.5-1.1,39.5"/>
-	</g>
-</g>
-<g id = "tapper"></g>
-<g>
-	<rect x="53.4" y="79.3" class="eyes" width="87.2" height="51.3"/>
-	<path class="tenticles-tapper" d="M54.7,135.6l23.4,8h29.8l29.3-3.1c0,0,5.5-7.6,6.9-11.5c1.4-4,1.3-8.9,1.9-11.7c7,1,13.6-4.1,12.7-10.4
-		c-7.8-60.3-39.9-88-54.1-97.6c-4-2.7-9.7-2.7-13.7,0c-14.2,9.5-46.2,37.2-54.1,97.1c-0.8,6.4,5.8,11.5,12.9,10.4
-		c0.5,3.1,1,7.6,0.5,12.2L54.7,135.6z M114.5,128.9c-6.6,0-12.5-3.1-16.3-7.8c-1.3-1.6-3.8-1.6-5.2,0c-3.8,4.8-9.7,7.8-16.3,7.8
-		c-12,0-21.7-10.1-21-22.2c0.6-10.9,9.7-19.6,20.6-19.8c6.8-0.1,12.8,3,16.7,7.8c1.3,1.6,3.8,1.6,5.2,0c3.9-4.9,10-7.9,16.7-7.8
-		c10.9,0.2,20,9,20.6,19.8C136.1,118.8,126.5,128.9,114.5,128.9z"/>
-	<path class="tenticles-tapper" d="M82,109.8c-2.2-0.4-3.9-2.2-4.2-4.4c-0.3-1.8,0.3-3.6,1.4-4.7c1-1,0.3-2.7-1.1-2.9c-0.9-0.1-1.9-0.1-2.9,0
-		c-4.6,0.6-8.3,4.4-8.8,9.1c-0.6,6.1,4.2,11.3,10.2,11.3c4.1,0,7.6-2.4,9.2-5.8c0.6-1.3-0.4-2.7-1.9-2.5
-		C83.4,109.9,82.7,109.9,82,109.8z"/>
-	<path class="tenticles-tapper" d="M120.2,109.8c-2.2-0.4-3.9-2.2-4.2-4.4c-0.3-1.8,0.3-3.6,1.4-4.7c1-1,0.3-2.7-1.1-2.9c-0.9-0.1-1.9-0.1-2.9,0
-		c-4.6,0.6-8.3,4.4-8.8,9.1c-0.6,6.1,4.2,11.3,10.2,11.3c4.1,0,7.6-2.4,9.2-5.8c0.6-1.3-0.4-2.7-1.9-2.5
-		C121.6,109.9,120.9,109.9,120.2,109.8z"/>
-</g>
-<path class="hidden-path" d="M50.2,128.9c-0.7,6.5-3.3,13.3-10.5,16.4c-23.5,10.2-25.3,35.8-26,45.5c0,0.6-0.1,1.1-0.1,1.5
-   c-0.2,3,1.8,5.7,4.7,6.3c0.4,0.1,0.8,0.1,1.3,0.1c2.5,0,4.8-1.6,5.6-4c0.1-0.2,8.6-23.4,27.8-26.2c13.2-1.9,22.3-7.9,28.5-16
-   c1.1,2.1,2.4,4.2,4.1,6.1c2.8,3.1,2.6,5,2.6,5.6c-0.4,5-8.1,11.2-14.4,16.2c-1.7,1.4-3.5,2.8-5.1,4.2c-2,1.7-2.7,4.6-1.6,7
-   c1,2.2,3.1,3.6,5.5,3.6c0.3,0,0.5,0,0.8,0c0.4,0,9.7-1.3,19.7-4.5c14.8-4.7,23.4-11.5,25.6-19.9c1.1-4,1.4-7.5,1.3-10.6
-   c5.5,4.8,12.7,8.3,22.3,9.8c19.2,2.8,27.7,26,27.8,26.2c0.9,2.4,3.2,4,5.7,4c0.4,0,0.8,0,1.3-0.1c2.9-0.6,5-3.3,4.7-6.4
-   c0.1-0.5,0.1-1,0-1.6c-0.7-9.7-2.5-35.3-26-45.5c-7.7-3.3-10.2-10.8-10.7-17.7"/>
-</svg>`
-
-let LURPS = {
-
-}
-export class SquidlyLoader extends SvgPlus{
-    constructor(el = "splash-screen") {
-        super(el)
-        if (typeof el == "string") this.onconnect();
-    }
-    onconnect(){
-        this.innerHTML = template;
-        this.appendChild(style);
-
-        this.tapper = new SvgPlus(this.querySelector('#tapper'));
-        this.tenticles = [...this.querySelector("#tenticles").children].map(g => [...g.children].map(p => new SvgPath(p)));
-        this.tenticles.forEach(ps => ps.push(new DPath(ps[0].d + "")))
-        this.start();
-    }
-    ondisconnect(){
-        this.stop();
-    }
-
-    async start(res = 5){
-        if (this.started) return;
-        this.started = true;
-        let stop = false;
-        this.stop = () => stop = true;
-        let theta = 0;
-
-        for (let i = 0; i < 1e10; i++) {
-            for (let t = 0; t < 1; t += 0.01 * res) {
-                let t0 = performance.now();
-                this.lurpTenticles(i%2 == 0 ? 1-t :t);
-                this.style.setProperty("--y", -Math.cos(theta));
-                theta += res * Math.PI/100;
-                if (stop) break;
-                while (performance.now() - t0 < 30) {
-                    await next();
-                }
-            }
-            if (stop) break;
+function makeIcon(){
+    let svg = document.createElementNS(XML, "svg");
+    svg.setAttribute("class", "squidly-logo");
+    svg.setAttribute("viewBox", "0 0 195.4 230");
+    svg.innerHTML = `<style>
+.squidly-logo {--main-color: #8F53C9;
+ --eyes-background: white;}
+.eyes{fill: var(--eyes-background);}
+.tenticles-tapper{ fill:var(--main-color); }
+</style>`;
+    let g1 = document.createElementNS(XML, "g");
+    let g2 = document.createElementNS(XML, "g");
+    g2.innerHTML = `
+<rect x="53.4" y="79.3" class="eyes" width="87.2" height="51.3"/>
+<path class="tenticles-tapper" d="M54.7,135.6l23.4,8h29.8l29.3-3.1c0,0,5.5-7.6,6.9-11.5c1.4-4,1.3-8.9,1.9-11.7c7,1,13.6-4.1,12.7-10.4c-7.8-60.3-39.9-88-54.1-97.6c-4-2.7-9.7-2.7-13.7,0c-14.2,9.5-46.2,37.2-54.1,97.1c-0.8,6.4,5.8,11.5,12.9,10.4c0.5,3.1,1,7.6,0.5,12.2L54.7,135.6z M114.5,128.9c-6.6,0-12.5-3.1-16.3-7.8c-1.3-1.6-3.8-1.6-5.2,0c-3.8,4.8-9.7,7.8-16.3,7.8c-12,0-21.7-10.1-21-22.2c0.6-10.9,9.7-19.6,20.6-19.8c6.8-0.1,12.8,3,16.7,7.8c1.3,1.6,3.8,1.6,5.2,0c3.9-4.9,10-7.9,16.7-7.8c10.9,0.2,20,9,20.6,19.8C136.1,118.8,126.5,128.9,114.5,128.9z"/>
+<path class="tenticles-tapper" d="M82,109.8c-2.2-0.4-3.9-2.2-4.2-4.4c-0.3-1.8,0.3-3.6,1.4-4.7c1-1,0.3-2.7-1.1-2.9c-0.9-0.1-1.9-0.1-2.9,0c-4.6,0.6-8.3,4.4-8.8,9.1c-0.6,6.1,4.2,11.3,10.2,11.3c4.1,0,7.6-2.4,9.2-5.8c0.6-1.3-0.4-2.7-1.9-2.5C83.4,109.9,82.7,109.9,82,109.8z"/>
+<path class="tenticles-tapper" d="M120.2,109.8c-2.2-0.4-3.9-2.2-4.2-4.4c-0.3-1.8,0.3-3.6,1.4-4.7c1-1,0.3-2.7-1.1-2.9c-0.9-0.1-1.9-0.1-2.9,0c-4.6,0.6-8.3,4.4-8.8,9.1c-0.6,6.1,4.2,11.3,10.2,11.3c4.1,0,7.6-2.4,9.2-5.8c0.6-1.3-0.4-2.7-1.9-2.5C121.6,109.9,120.9,109.9,120.2,109.8z"/>
+`;
+    svg.appendChild(g1);
+    svg.appendChild(g2);
+    let stp = false;
+    let rn = false
+    svg.start = async () => {
+        if (rn) return;
+        rn = true;
+        while (!stp) {
+            let t = await next() / FREQ;
+            t = (1 - Math.cos(t))/2;
+            svg.style.setProperty("--y", 1-t*2);
+            lurpt(t, g1)
         }
-        this.started = false;
     }
-
-    lurpTenticles(t){
-        this.tapper.innerHTML = "";
-        let precalc = false;
-        if (t in LURPS) {
-            this.tapper.innerHTML = LURPS[t];
-            precalc = true;
-        } 
-        for (let [p1, p2, p0] of this.tenticles) {
-            let cp2 = p2.d.start;
-            let cp0 = p0.start;
-            for (let cp1 of p1.d) {
-                cp1.p = lurp([cp2.p, cp0.p], t);
-                cp1.c1 = lurp([cp2.c1, cp0.c1], t);
-                cp1.c2 = lurp([cp2.c2, cp0.c2], t);
-                cp2 = cp2.next;
-                cp0 = cp0.next;
-            }
-            p1.update();
-            if (!precalc) this.tapperPath(p1);
-        }
-        if (!precalc) LURPS[t] = this.tapper.innerHTML;
-    }
-
-    tapperPath(path, segs = 50, width = 12){
-        let tapper = this.tapper;
-        let l = path.getTotalLength();
-        let sl = l/segs;
-        let d2= "";
-        let d3 = "";
-        for (let i = 0; i < segs; i++) {
-            let p0 = path.getVectorAtLength(i*sl);
-            let p1 = path.getVectorAtLength((i+0.5)*sl);
-            let p2 = p1.sub(p0).rotate(Math.PI/2);
-            p2 = p2.div(p2.norm()).mul(6 + (segs-i)*(width/segs));
-            let p4 = p0.add(p2.rotate(Math.PI)) ;
-            let p3 = p0.add(p2);
-
-            d2 = d2 == "" ? `M${p3}` : d2 + `L${p3}`;
-            d3= `L${p4}` + d3;
-        }
-
-        return  tapper.createChild("path", {
-            d: d2 + d3,
-            class: "tenticles-tapper",
-        })
-    }
+    svg.stop = () => {stp = true;}
+    return svg;
 }
+function makeLoader(){
+    let div = document.createElement("div");
+    div.setAttribute("class", "load-screen");
+    div.innerHTML = `<style>
+    .load-screen svg { position:absolute;top:50%;left:50%;transform:translate(-50%, calc(var(--y) * 10% - 50% ));width:30vmin;}
+    .load-screen {position: fixed;z-index:1000;top:0;left:0;right:0;bottom:0;background:white;}          
+    </style>`;
+    let svg = makeIcon();
+    div.appendChild(svg);
+    svg.start();
+    div.hide = async (d) => {
+        window.loader = null;
+        div.style.transition = `${d}s cubic-bezier(0.32, 0.00, 0.68, 1)`;
+        await next()
+        div.style.opacity = 0;
+        setTimeout(() => {
+            svg.stop();
+            div.remove();
+        }, d * 1000)
+    }
+    document.body.appendChild(div);
+    window.loader = div;
+    return div;
+}
+makeLoader();
