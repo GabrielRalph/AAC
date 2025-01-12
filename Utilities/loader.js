@@ -71,7 +71,7 @@ const template = `<svg viewBox="0 0 195.4 230">
 let LURPS = {
 
 }
-export class SplashScreen extends SvgPlus{
+export class SquidlyLoader extends SvgPlus{
     constructor(el = "splash-screen") {
         super(el)
         if (typeof el == "string") this.onconnect();
