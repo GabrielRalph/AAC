@@ -423,8 +423,19 @@ export class GridEditor extends ResizeWatcher {
 
 
         let grid = this.createChild("div", {class: "grid-space"});
-        this.grid = grid.createChild(CommsGrid);
-
+        this.grid = grid.createChild(CommsGrid, {events: {
+            "icon-select": (e) => {
+                if (!this.editMode) {
+                    let item = e.selectedItem;
+                    if (item.type == "topic") {
+                        topicsList.selectTopic(item.topicUID);
+                        this.showTopic(item.topicUID);
+                        e.stopImmediatePropagation()
+                    }
+                }
+            }
+        }});
+   
 
         let editor = this.createChild("div", {class: "editor-panel"});
         this.editor = editor.createChild(EditPanel, {}, this);
@@ -490,11 +501,13 @@ export class GridEditor extends ResizeWatcher {
 
 
     set editMode(value){
+        this._editMode = value;
         let time = 0.3;
         this.styles = {"--tran-time": time + "s"};
         this.toggleAttribute("edit", value);
         setTimeout(() => {this.styles = {"--tran-time": "0s"}}, time * 1000);
     }
+    get editMode(){return this._editMode;}
 
 
     async selectSymbol(){
