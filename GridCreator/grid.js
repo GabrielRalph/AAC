@@ -229,6 +229,7 @@ class Grid extends SvgPlus {
             if (typeof idx === "number") {
                 let event = new Event("icon-select", {bubbles: true})
                 event.selectedIconIndex = idx;
+                event.selectedItem = this.topicItems[idx];
                 cell.dispatchEvent(event);
             }
         }
@@ -249,6 +250,7 @@ class Grid extends SvgPlus {
     }
 
     set topic(topic) {
+        this._topicItems = topic.items;
         let [cols, rows] = Topics.getGridSize(topic.size)
         this.size = [cols, rows];
         let i = 0; 
@@ -306,6 +308,10 @@ class Grid extends SvgPlus {
 
 
         this.selectIcon(this.lastSelected);
+    }
+    
+    get topicItems(){
+        return this._topicItems;
     }
 
     set size([cols, rows]){
