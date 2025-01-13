@@ -74,6 +74,40 @@ grid-editor[edit] grid-icon {
     transition: transform var(--tran-time) ease-in;
 }
 
+.popup-promt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.278);
+    transition: opacity 0.3s ease;
+}
+.popup-promt[show] {
+    opacity: 1;
+    pointer-events: all;
+}
+.popup-promt > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 1em;
+    border-radius: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    align-items: center;
+}
+.popup-promt > div >div:last-child {
+    display: flex;
+    gap: var(--gap);
+}
+
+
 .editor-panel .symbol {
     display: flex;
     justify-content: center;

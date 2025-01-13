@@ -13,10 +13,17 @@ export class GridIconSymbol extends SvgPlus{
     constructor(symbol){
         super("div");
         this.class = "symbol";
-        this.createChild("img", {src: symbol.url})
+
+        this.createChild("img", {
+            events: {
+                load: () => this.dispatchEvent(new Event("load")),
+                error: () => this.dispatchEvent(new Event("load")),
+            },
+            src: symbol.url
+        });
+    
     }
 }
-
 
 const MAKE_CARD_ICON = {
     topic(size, border = 4) {
@@ -95,11 +102,23 @@ class GridIcon extends SvgPlus {
         this.cardIcon = this.createChild("svg", {class: "card-icon"});
         this.content = this.createChild("div", {class: "content"});
 
-        this.symbol = this.content.createChild(GridIconSymbol, {}, item.symbol);
+        this.symbol = this.content.createChild(GridIconSymbol, {
+            events: {load: () => {
+                this.loaded = true;
+                if (this.onload instanceof Function) this.onload();
+                this.dispatchEvent(new Event("load"));
+            }}
+        }, item.symbol);
         this.content.createChild("div", {content: item.displayValue, class: "display-value"});
 
         let rs = new ResizeObserver(() => this.onresize())
         rs.observe(this);
+    }
+
+    async waitForLoad(){
+        console.log(this.loaded);
+        
+        if (!this.loaded) return new Promise((r) => this.onload = () => r())
     }
 
     onresize(){
@@ -225,6 +244,10 @@ class Grid extends SvgPlus {
         this.dispatchEvent(event);
     }
 
+    get allCells() {
+        return this.cells.flatMap(row => row);
+    }
+
     set topic(topic) {
         let [cols, rows] = Topics.getGridSize(topic.size)
         this.size = [cols, rows];
@@ -281,7 +304,8 @@ class Grid extends SvgPlus {
             }
         }
 
-        this.selectIcon(this.lastSelected)
+
+        this.selectIcon(this.lastSelected);
     }
 
     set size([cols, rows]){
@@ -301,6 +325,12 @@ class Grid extends SvgPlus {
                 )
             )
         ];
+    }
+
+    async waitForLoad() {
+        console.log(this.allCells.map(c=>c.icon));
+        
+        await Promise.all(this.allCells.map(c => c.icon ? c.icon.waitForLoad() : null))
     }
 }
 

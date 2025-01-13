@@ -1,9 +1,25 @@
+/**
+ * @typedef {import("../Firebase/topics.js").GTopic} GTopic
+ * @typedef {import("../Firebase/topics.js").GTopicDescriptor} GTopicDescriptor
+ * @typedef {import("../Firebase/topics.js").GItem} GItem
+ */
+
 import {SvgPlus} from "../SvgPlus/4.js"
 import * as Topics from "../Firebase/topics.js"
 import { CommsGrid, GridIconSymbol } from "./grid.js";
 import { SearchWidget } from "./symbol-search.js";
-import { WBlock, ToggleInput, ResizeWatcher} from "../Utilities/shared.js";
+import { WBlock, ToggleInput, ResizeWatcher, PopupPromt} from "../Utilities/shared.js";
 import { Icon } from "../Icons/icons.js";
+
+function compare(a, b) {
+    let getst = t => (t.owned ? "a" : "b") + (t.starter ? "a" : "b") + (t.public ? "a" : "b")
+    let [ast, bst] = [getst(a), getst(b)];
+    if (ast == bst) {
+        return a.topicUID > b.topicUID ? -1 : 1;
+    } else {
+        return ast > bst ? 1 : -1;
+    }
+}
 
 class EditPanel extends SvgPlus {
     _topic = null;
@@ -273,45 +289,41 @@ class TopicsList extends SvgPlus {
     constructor() {
         super("div");
         this.class = "topics-list"
+        // Add logo at top
         this.createChild("img", {src: "./Assets/logo-banner.svg"})
+
+        // Create WBlobck
         let wblock = this.createChild(WBlock);
+        this.wblock = wblock;
+
+        
+        // Create header
         let r = wblock.head.createChild("div", {class: "row topics-head bigger"});
         r.createChild("span", {content: "Topics"})
         r.createChild("button", {events: {
             click: () => this.dispatchEvent(new Event("add"))
         }}).createChild(Icon, {}, "add")
+
+        // Deselect if no icon is clicked
         wblock.main.onclick = () => this.selectTopic(null, true);
-        this.wblock = wblock;
 
+        // Create edit and trash buttons.
         let buttons = this.createChild("div", {class: "topics-buttons row bigger"});
-        buttons.createChild("button", {events: {
-            click: () => this.dispatchEvent(new Event("edit"))
-        }}).createChild(Icon, {}, "edit")
-
-        buttons.createChild("button", {events: {
-            click: () => this.dispatchEvent(new Event("delete")),
-            contextmenu: (e) => {
-                Topics.logData();
-                e.preventDefault();
-            }
-        }}).createChild(Icon, {}, "trash")
-
-        let init = true;
-        Topics.onTopicsUpdate(() => {
-            let topics = Topics.getTopics();
-            
-            this.topics = topics;
-            if (init) {
-                init = false;
-                if (topics.length > 0) {
-                    this.selectTopic(topics[0].topicUID, true);
-                }
-            }
+        ["trash", "edit"].forEach(key => {
+            buttons.createChild("button", {events: {
+                click: () => this.dispatchEvent(new Event(key))
+            }}).createChild(Icon, {}, key);
         })
+
+        // Update the list when topics change
+        Topics.onTopicsUpdate(() => this.topics = Topics.getTopics())
     }
 
 
-
+    /**
+     * @param {string} topicUID
+     * @param {boolean} emit whether to fire the select event event
+     */
     selectTopic(topicUID, emit = false) {
         if (this.lastSelected !== topicUID) {
             if (this.lastSelected in this.topicIcons) {
@@ -341,17 +353,23 @@ class TopicsList extends SvgPlus {
         return this.lastSelected;
     }
 
+    /** Sorts topics and renders topic list
+     * @param {GTopicDescriptor[]}
+     * */
     set topics(topics){
         let {main} = this.wblock
-        console.log(topics);
         
-        let si = topics.map((t, i) => [(t.starter ? "a" : "b") + (t.owned ? "a" : "b") + (t.public ? "a" : "b") + t.topicUID, i]);
-        si.sort((a, b) => b[0] > a[0] ? -1 : 1);
-        topics = si.map(([s, i]) => topics[i]);
+        // Sort by owned then starter then public the date/
+        topics.sort(compare);
 
+        // Store sorted topics.
+        this._topics = topics;
+
+        // Render topics
         main.innerHTML = "";
         let topicIcons = {}
         for (let topic of topics) {
+            // Create topic icon.
             let ticon = main.createChild("div", {
                 class: "topic-name-title",
                 content: topic.name,
@@ -362,25 +380,37 @@ class TopicsList extends SvgPlus {
                         this.selectTopic(topic.topicUID, true)
                     }
                 }
-            })
+            });
+            // Create indicator icons for each condition (owned, public and starter).
             let indicators = ticon.createChild("div", {class: "indicators"})
-            for (let key of ["starter", "owned", "public"]) {
+            for (let key of ["public", "starter", "owned"]) {
                 ticon.toggleAttribute(key, topic[key]);
                 ticon[key] = topic[key];
                 indicators.createChild("div", {class: "indicator", type: key})
             }
 
+            // If it is the current selected topic, select it.
             if (this.selected == topic.topicUID) ticon.toggleAttribute("selected", true);
 
+            // Store reference by topicUID.
             topicIcons[topic.topicUID] = ticon;
         }
+        // Store reference map.
         this.topicIcons = topicIcons;
+    }
+
+    /** @return {GTopicDescriptor[]} */
+    get topics(){
+        return this._topics;
     }
 }
 
 export class GridEditor extends ResizeWatcher {
     /** @type {CommsGrid} */
     grid = null;
+
+    /** @type {TopicsList} */
+    topicsList = null;
 
     constructor(){
         super("grid-editor");
@@ -399,10 +429,11 @@ export class GridEditor extends ResizeWatcher {
         let editor = this.createChild("div", {class: "editor-panel"});
         this.editor = editor.createChild(EditPanel, {}, this);
 
+        this.popup = this.createChild(PopupPromt, {});
 
         topicsList.events = {
             edit: () => this.editTopic(),
-            delete: () => this.deleteTopic(),
+            trash: () => this.deleteTopic(),
             select: () => this.showTopic(topicsList.selected, false),
             add: () => this.createTopic()
         }
@@ -417,18 +448,17 @@ export class GridEditor extends ResizeWatcher {
                 Topics.updateTopic(this.editor.topic);
                 this.showTopic(topicsList.selected, true)
             },
-            add: () => {
+            add: async () => {
                 this.editMode = false;
-                Topics.addTopic(this.editor.topic);
-                this.showTopic(null, true);
+                let key = await Topics.addTopic(this.editor.topic);
+                this.topicsList.selectTopic(key)
+                this.showTopic(key, true);
             }
         }
 
         Topics.onTopicsUpdate(() => {
             this.showTopic(topicsList.selected, true);
         })
-    
-        Topics.initialise();
     }
 
     createTopic(){
@@ -442,8 +472,13 @@ export class GridEditor extends ResizeWatcher {
         this.editMode = true;
     }
 
-    deleteTopic(uid) {
-
+    async deleteTopic() {
+        let uid = this.topicsList.selected;
+        let name = Topics.getTopicInfo(uid).name;
+        let confirm = await this.popup.promt(`Are you sure you want to delete the topic '${name}'?`);
+        if (confirm) {
+            Topics.deleteTopic(uid);
+        }
     }
 
     showTopic(uid, fast) {
@@ -469,6 +504,15 @@ export class GridEditor extends ResizeWatcher {
         })
         this.toggleAttribute("searching", false);
         return result;
+    }
+
+
+    async initialise() {
+        await Topics.initialise();
+        let firstTopic = this.topicsList.topics[0].topicUID
+        this.topicsList.selectTopic(firstTopic, false);
+        this.showTopic(firstTopic, true);
+        await this.grid.currentGrid.waitForLoad()
     }
 }
 

@@ -40,3 +40,31 @@ export class ResizeWatcher extends SvgPlus {
         window.requestAnimationFrame(updateSize)
     }
 }
+
+export class PopupPromt extends SvgPlus {
+    constructor(){
+        super("div");
+        this.class = "popup-promt";
+
+        let pwindow = this.createChild("div");
+        this.messageEl = pwindow.createChild("div");
+        let buttons = pwindow.createChild("div");
+        this.confirm = buttons.createChild("button", {content: "confirm"});
+        this.cancel = buttons.createChild("button", {content: "cancel"});
+    }
+
+    async promt(message) {
+        this.message = message;
+        this.toggleAttribute("show", true);
+        let result = await new Promise((resolve, reject) => {
+            this.confirm.onclick = () => resolve(true);
+            this.cancel.onclick = () => resolve(false);
+        })
+        this.toggleAttribute("show", false)
+        return result;
+    }
+
+    set message(text){
+        this.messageEl.innerHTML = text
+    }
+}

@@ -1,7 +1,7 @@
-import * as firebase from "../Firebase/firebase-client.js"
 import { WBlock, ToggleInput } from "../Utilities/shared.js";
 import {SvgPlus} from "../SvgPlus/4.js"
 import {Icon} from "../Icons/icons.js"
+import { searchSymbols, deleteSymbol, uploadSymbol } from "../Firebase/topics.js";
 
 const MAX_FILE_SIZE = 50 * 1024;
 const STATUS_TEXT = {
@@ -13,62 +13,7 @@ const STATUS_TEXT = {
     "3.6": "Saving Icon File",
     "4": "Complete"
 }
-/**
- * @param {File} file
- */
-async function uploadSymbol(file, name, pub, cb) {
-    let type = file.type;
-    let dataBuffer = await toBufferString(file);
 
-    let uploadID = (new Date()).getTime() + "id";
-
-    console.log(name, dataBuffer.length, uploadID);
-    
-    // watch file status
-    let end = firebase.onValue(firebase.ref(`file-status/${firebase.getUID()}`), (snap) => {
-        let data = snap.val();
-        if (data) {
-            let matches = Object.values(data).filter(val => val.id == uploadID);
-            if (matches.length > 0) {
-                let res = matches[0];
-                cb(res.status / 4, res.status)
-                if (res.status == 4) {
-                    end();
-                }
-            }
-        }
-    })
-
-    console.log("starting");
-    
-
-    let res = await firebase.callFunction("gridSymbols-upload", {dataBuffer,public:pub,name,type,uploadID});
-    return res.data;
-}
-
-async function toBufferString(file) {
-    let arrayBuffer = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          resolve(e.target.result)
-        };
-        reader.readAsArrayBuffer(file);
-    })
-
-    var binary = '';
-    var bytes = new Uint8Array( arrayBuffer );
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
-    }
-    
-    return window.btoa(binary);
-}
-
-async function search(text, mode = "all", type = "both"){
-    let results = await firebase.callFunction("gridSymbols-search", {text, mode: mode, type: type});
-    return results.data;
-}
 
 class UploadForm extends SvgPlus {
     constructor(searchWidget){
@@ -267,7 +212,7 @@ export class SearchWidget extends WBlock {
         let text = this.searchInput.value;
         if (text.length > 0) {
             this.loading = true;
-            let items = await search(text, mode);
+            let items = await searchSymbols(text, mode);
             this.loading = false;
             this.showResults(items);
         }
@@ -298,7 +243,7 @@ export class SearchWidget extends WBlock {
                             e.stopImmediatePropagation();
                             e.stopPropagation();
                             this.loading = true;
-                            let results = await firebase.deleteSymbol(i.id, "id");
+                            let results = await deleteSymbol(i.id, "id");
                             console.log(results);
                             if (results.success) {
                                 item.remove();
