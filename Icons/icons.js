@@ -1,5 +1,5 @@
 import { SvgPlus, Vector} from "../../SvgPlus/4.js"
-import { IconSourceText } from "http://127.0.0.1:5509/src/Utilities/Icons/icons-library.js";
+import { IconSourceText } from "./icons-library.js";
 
 /**
  * @typedef IconInfo
