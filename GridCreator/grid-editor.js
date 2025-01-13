@@ -290,7 +290,7 @@ class TopicsList extends SvgPlus {
         super("div");
         this.class = "topics-list"
         // Add logo at top
-        this.createChild("img", {src: "./Assets/logo-banner.svg"})
+        this.createChild("img", {src: "https://grids.squidly.com.au/Assets/logo-banner.svg"})
 
         // Create WBlobck
         let wblock = this.createChild(WBlock);
