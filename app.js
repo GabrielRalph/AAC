@@ -15,7 +15,7 @@ class GridCreatorApp extends SvgPlus {
             let d1 = this.createChild("div", {class: "popup-promt", show:true});
             let d2 = d1.createChild("div", {content: "Sorry, you are not authenticated and can not <br> use this app currently!"})
         }
-        window.loader.hide();
+        document.querySelector("squidly-loader").hide(0.3);
     }
 
 }
