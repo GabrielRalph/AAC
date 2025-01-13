@@ -475,7 +475,7 @@ export class GridEditor extends ResizeWatcher {
     async deleteTopic() {
         let uid = this.topicsList.selected;
         let name = Topics.getTopicInfo(uid).name;
-        let confirm = await this.popup.promt(`Are you sure you want to delete the topic '${name}'?`);
+        let confirm = await this.popup.promt(`Are you sure you want to <b>delete</b> <br> the topic <b>'<u>${name}</u>'</b>?`);
         if (confirm) {
             Topics.deleteTopic(uid);
         }

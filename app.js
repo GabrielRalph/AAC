@@ -9,7 +9,12 @@ class GridCreatorApp extends SvgPlus {
     }
 
     async load(){
-        await this.gridEditor.initialise();
+        try {
+            await this.gridEditor.initialise();
+        } catch (e) {
+            let d1 = this.createChild("div", {class: "popup-promt", show:true});
+            let d2 = d1.createChild("div", {content: "Sorry, you are not authenticated and can not <br> use this app currently!"})
+        }
         window.loader.hide();
     }
 
