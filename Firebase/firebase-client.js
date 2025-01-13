@@ -5,6 +5,7 @@ import {update, getDatabase, child, push, ref as _ref, get, onValue, onChildAdde
 import { getFunctions, httpsCallable  } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js'
 import { getStorage, ref as sref, uploadBytesResumable, getDownloadURL, getBlob, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js'
 
+window.signIn =(a,b) => signInWithEmailAndPassword(Auth, a,b);
 const firebaseConfig = {
     apiKey: "AIzaSyChiEAP1Rp1BDNFn7BQ8d0oGR65N3rXQkE",
     authDomain: "eyesee-d0a42.firebaseapp.com",
