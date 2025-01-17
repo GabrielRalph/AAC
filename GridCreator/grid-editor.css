@@ -305,6 +305,14 @@ button .icon[name="add"] {
     --indicator-color: #d4d4d4;
 }
 
+.topic-name-title span {
+    font-weight: bold;
+}
+.topic-name-title i {
+    font-weight: normal;
+    font-size: 0.8em;
+}
+
 .indicators {
     display: flex;
     gap: var(--gap);

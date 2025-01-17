@@ -46,10 +46,9 @@
     * @property {GridSize} size
     * @property {[GItem]} items
     * @property {?string} topicUID
+    * @property {string} owner
     * @property {boolean} owned
     * @property {boolean} public
-    * @property {boolean} starter
-    * 
  */
 
 /**
@@ -59,10 +58,10 @@
  * @property {string} topicUID
  * @property {boolean} owned
  * @property {boolean} public
- * @property {boolean} starter
+ * @property {string} ownerName
  */
 
-import {onValue, callFunction, push, set, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, get} from "./firebase-client.js"
+import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, startAfter, endBefore} from "./firebase-client.js"
 /**
  * @type {Object.<GridSize, function>}
  */
@@ -81,7 +80,9 @@ const GITEM_TYPES = {
     "topic": "topic",
 }
 
+/** @type {Object.<string, GTopic>} */
 let TOPICS = {};
+let DISPLAYNAMES = {};
 let updateCallbacks = [];
 let databaseWatchers = [];
 
@@ -188,7 +189,6 @@ function parseAndCopyTopic(topic){
         throw `Topic with size ${topic.size} must contain at least ${total} items but only had ${topic.items.length} items.`
     }
 
-    parsedTopic.starter = !!topic.starter;
 	parsedTopic.public = !!topic.public;
 
     let errorItem = null;
@@ -208,8 +208,29 @@ function parseAndCopyTopic(topic){
     return parsedTopic;
 }
 
+async function getUserNames(){
+    let users = new Set(Object.values(TOPICS).map(topic => topic.owner));
+    let proms = [...users].filter(uid => !(uid in DISPLAYNAMES)).map(async uid => {
+        let name = (await get(ref(`users/${uid}/info/displayName`))).val();
+        if (name == null) {
+            let first = (await get(ref(`users/${uid}/info/firstName`))).val();
+            let last = (await get(ref(`users/${uid}/info/lastName`))).val();
+            name = (first || "") + " " + (last || "");
+        }
+        DISPLAYNAMES[uid] = name;
+        return name;
+    })
+    await Promise.all(proms);
+    for (let key in TOPICS) {
+        let topic = TOPICS[key];
+        let name = DISPLAYNAMES[topic.owner];
+        topic.ownerName = name;
+    }
+}
 
-function callUpdates(){
+
+async function callUpdates(){
+    await getUserNames();
     for (let cb of updateCallbacks) cb();
 }
 
@@ -331,9 +352,8 @@ export function getEmptyTopic() {
     return {
 		public: false,
 		owner: getUID(),
-        name: "",
+        name: "New Topic",
         size: "4x3",
-        starter: false,
         topicUID: "new",
         items: new Array(MAX_ITEMS).fill(0).map(i => getEmptyItem())
     }
@@ -398,8 +418,8 @@ export function getTopics(onlyOwned){
     for (let topicUID in TOPICS) {
 		let topic = TOPICS[topicUID];
 		if (!onlyOwned || topic.owner == uid) {
-			let {name, size, starter, owner} = topic
-			topics.push({name, size, topicUID, starter: starter, public: topic.public, owned: owner == uid});
+			let {name, size, starter, owner, ownerName} = topic
+			topics.push({name, size, topicUID, starter: starter, public: topic.public, owned: owner == uid, ownerName});
 		}
     }
     return topics;
@@ -413,8 +433,8 @@ export function getTopicInfo(topicUID) {
     let topic = null
     if (topicUID in TOPICS) {
 		let topic0 =  TOPICS[topicUID];
-        let {name, size, starter} = topic0;
-        topic = {name, size, topicUID, starter: starter, public: topic0.public, owned: topic0.owner == getUID()}
+        let {name, size, starter, ownerName} = topic0;
+        topic = {name, size, topicUID, starter: starter, public: topic0.public, owned: topic0.owner == getUID(), ownerName}
     }
     return topic;
 }
@@ -427,8 +447,8 @@ export function getTopic(topicUID){
     let topic = null
     if (topicUID in TOPICS) {
 		let topic0 =  TOPICS[topicUID];
-        let {name, size, items, starter} = topic0;
-        topic = {name, size, topicUID, starter: starter, public: topic0.public}
+        let {name, size, items} = topic0;
+        topic = {name, size, topicUID, public: topic0.public}
         let setItems = items.map(gItem => parseAndCopyGItem(gItem));
         let allItems = new Array(MAX_ITEMS).fill(getEmptyItem).map(a=>a())
         setItems.forEach((item, i) => {
@@ -494,8 +514,8 @@ export function updateTopic(topic) {
  * listeneres.
  */
 export async function initialise(){
+
 	let userData = await _init();
-    console.log(userData);
     
     if (userData == null) throw "No user present."
 	
@@ -533,7 +553,6 @@ export async function initialise(){
 		}));
     });
     await Promise.all(proms);
-    callUpdates();
+    await callUpdates();
 }
-
 

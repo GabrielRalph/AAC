@@ -229,12 +229,6 @@ class EditPanel extends SvgPlus {
                 }
             }
 
-            let starter = this.create_toggle_input("Start Topic", topic.starter);
-            starter.events = {
-                change: () => {
-                    topic.starter = starter.value
-                }
-            }
 
             let isPublic = this.create_toggle_input("Public", topic.public);
             isPublic.events = {
@@ -243,7 +237,7 @@ class EditPanel extends SvgPlus {
                 }
             }
 
-            let inputs = {name, size, starter}
+            let inputs = {name, size}
             for (let k in inputs) {
                 let input = inputs[k]
                 input.events = {focus: () => input.container.toggleAttribute("error", false)}
@@ -357,6 +351,8 @@ class TopicsList extends SvgPlus {
      * @param {GTopicDescriptor[]}
      * */
     set topics(topics){
+        console.log(topics);
+        
         let {main} = this.wblock
         
         // Sort by owned then starter then public the date/
@@ -372,7 +368,6 @@ class TopicsList extends SvgPlus {
             // Create topic icon.
             let ticon = main.createChild("div", {
                 class: "topic-name-title",
-                content: topic.name,
                 events: {
                     /** @param {MouseEvent} e */
                     click: (e) => {
@@ -381,13 +376,15 @@ class TopicsList extends SvgPlus {
                     }
                 }
             });
+            let text = ticon.createChild("span", {content: topic.name});
+            text.createChild("i", {content: "<br>" + topic.ownerName })
+        
             // Create indicator icons for each condition (owned, public and starter).
             let indicators = ticon.createChild("div", {class: "indicators"})
-            for (let key of ["public", "starter", "owned"]) {
-                ticon.toggleAttribute(key, topic[key]);
-                ticon[key] = topic[key];
-                indicators.createChild("div", {class: "indicator", type: key})
-            }
+            ticon.toggleAttribute("public", topic.public);
+            ticon["public"] = topic["public"];
+            ticon.owned = topic.owned;
+            indicators.createChild("div", {class: "indicator", type: "public"})
 
             // If it is the current selected topic, select it.
             if (this.selected == topic.topicUID) ticon.toggleAttribute("selected", true);
