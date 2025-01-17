@@ -137,6 +137,7 @@ class GridIcon extends SvgPlus {
 
 class Rotater extends SvgPlus {
     angle = 0;
+    contentSets = [];
     constructor(){
         super("div");
         this.class = "rotater";
@@ -144,19 +145,32 @@ class Rotater extends SvgPlus {
         this.slot1 = rel.createChild("div", {class: "slot-1"});
         this.slot2 = rel.createChild("div", {class: "slot-2"});
         this.transitionTime = 0.8;
+
     }
 
-
-    setContent(content, immediate = false) {
-        let element = immediate ? this.shownSlot : this.hiddenSlot;
-
-        element.innerHTML = "";
-        if (content instanceof Element) {
-            element.appendChild(content);
-        }
-
-        if (!immediate) {
-            this.flipped = !this.flipped;
+    async setContent(content, immediate = false) {
+        if (this._settingContent) {
+            console.log("attemt to set whilst setting");
+            this.contentSets.push([content, immediate]);
+        } else {
+            this._settingContent = true;
+            let element = immediate ? this.shownSlot : this.hiddenSlot;
+    
+            element.innerHTML = "";
+            if (content instanceof Element) {
+                element.appendChild(content);
+            }
+    
+            if (!immediate) {
+                await this.flip();
+            }
+            this._settingContent = false;
+            if (this.contentSets.length > 0) {
+                console.log("sets made whilst setting", this.contentSets);
+                
+                this.setContent(...this.contentSets.pop());
+                this.contentSets = [];
+            }
         }
     }
 
@@ -167,25 +181,24 @@ class Rotater extends SvgPlus {
     }
     get transitionTime(){ return this._transitionTime; }
     
-    get shownSlot(){ return this.flipped ? this.slot1 : this.slot2; }
-    get hiddenSlot(){ return this.flipped ? this.slot2 : this.slot1; }
+    get shownSlot(){ return this.flipped > 0.5 ? this.slot1 : this.slot2; }
+    get hiddenSlot(){ return this.flipped > 0.5 ? this.slot2 : this.slot1; }
 
 
-    set flipped(bool) {
+    async flip(){
+        this.flipping = true;
         this.angle =  this.angle + 180;
-
-        // this.toggleAttribute("flip", bool);
         this.styles = {
             "--angle": this.angle + "deg"
         }
-        this.toggleAttribute("flip", bool);
-        this._flipped = bool;
-
-        setTimeout(() => {
-            this.hiddenSlot.innerHTML = "";
-        }, this.transitionTime * 1000);
-
+        let flipped = !this.flipped;
+        this.toggleAttribute("flip", flipped);
+        this._flipped = flipped;
+        await new Promise((r) => {setTimeout(r, this.transitionTime * 1000)});
+        this.flipping = false;
     }
+
+
     get flipped(){return this._flipped;}
 }
 
