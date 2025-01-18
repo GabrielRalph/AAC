@@ -6,6 +6,9 @@
     --word-color: #a7d2ff;
     --word-starter-color: #aeef93;
     --action-color:#a61f00;
+    --word-noun: #d6c6ff;
+    --word-adjective: #ffe792;
+    --word-verb: #ff9ca7;
 
     --color-danger: #8f53c9;
     --color-danger-light: #c091ee;
@@ -100,6 +103,15 @@ grid-icon {
 
 grid-icon.starter {
     --card-color: var(--word-starter-color);
+}
+grid-icon.noun {
+    --card-color: var(--word-noun);
+}
+grid-icon.verb {
+    --card-color: var(--word-verb);
+}
+grid-icon.adjective {
+    --card-color: var(--word-adjective);
 }
 
 grid-icon.topic {

@@ -77,6 +77,9 @@ const MAX_ITEMS = 4 * 3;
 const GITEM_TYPES = {
     "normal": "word",
     "starter": "word",
+    "noun": "word",
+    "verb": "word",
+    "adjective": "word",
     "topic": "topic",
 }
 

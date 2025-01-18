@@ -14,6 +14,7 @@ export class GridIconSymbol extends SvgPlus{
         super("div");
         this.class = "symbol";
 
+        // Create image and add load event.
         this.createChild("img", {
             events: {
                 load: () => this.dispatchEvent(new Event("load")),
@@ -25,6 +26,12 @@ export class GridIconSymbol extends SvgPlus{
     }
 }
 
+function plainCard(size, border = 4) {
+    let inSize = size.sub(border);
+    let g = inSize.y / 20;
+    return `<rect class = "card" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />
+            <rect stroke-width = "${border}" class = "outline" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />`
+}
 const MAKE_CARD_ICON = {
     topic(size, border = 4) {
         let inSize = size.sub(border);
@@ -75,33 +82,35 @@ const MAKE_CARD_ICON = {
                  <path class = "tab" d = "${tabPath}" />
                  <path stroke-width = "${border}" class = "outline" d = "${outline}" />`
     },
-    normal(size, border = 4) {
-        let inSize = size.sub(border);
-        let g = inSize.y / 20;
-
-        return `<rect class = "card" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />
-                <rect stroke-width = "${border}" class = "outline" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />`
-    },
-    starter(size, border = 4) {
-        let inSize = size.sub(border);
-        let g = inSize.y / 20;
-
-        return `<rect class = "card" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />
-                <rect stroke-width = "${border}" class = "outline" x = "${border/2}" y = "${border/2}" width = "${inSize.x}"  height = "${inSize.y}" rx = "${g}" ry = "${g}" />`
-    },
+    normal: plainCard,
+    starter: plainCard,
+    noun: plainCard,
+    verb: plainCard,
+    adjective: plainCard,
+    action: plainCard,
 }
 
+
+/** A GridIcon represents an item from a topic.
+ */
 class GridIcon extends SvgPlus {
     constructor(item, groupNumber){
         super("grid-icon", "grid-row-"+groupNumber);
+        // Set class to type
         this.class = item.type;
         this.type = item.type;
+        
+        // Toggle attribute 'i-hidden' if icon is hidden.
         this.toggleAttribute("i-hidden", item.hidden);
+
+        // Enable draggability
         this.setAttribute("draggable", true)
 
+        // Create card background svg, and icon content box.
         this.cardIcon = this.createChild("svg", {class: "card-icon"});
         this.content = this.createChild("div", {class: "content"});
 
+        // Add symbol to content box.
         this.symbol = this.content.createChild(GridIconSymbol, {
             events: {load: () => {
                 this.loaded = true;
@@ -109,26 +118,36 @@ class GridIcon extends SvgPlus {
                 this.dispatchEvent(new Event("load"));
             }}
         }, item.symbol);
+
+        // Add text box with display value to content box.
         this.content.createChild("div", {content: item.displayValue, class: "display-value"});
 
+        // Set up resize observer to re render the card when the size of the 
+        // grid icon changes.
         let rs = new ResizeObserver(() => this.onresize())
         rs.observe(this);
     }
 
+    /** Can be used to wait for the grid symbol image to load.
+     *  @return {Promise<void>}
+     * */ 
     async waitForLoad(){
-        console.log(this.loaded);
-        
         if (!this.loaded) return new Promise((r) => this.onload = () => r())
     }
 
+    // Called when the size of the icon changes.
     onresize(){
+        // If element is on the DOM
         if (this.parentElement) {
-            let size = this.bbox[1];
-            
-            if (size.x > 1e-10 && size.y > 1e-10) {
+            // Get the size from the bounding client rect of the icon.
+            let size = this.bbox[1]; 
+
+            // If there are no zero values in size dimension.
+            if (size.x > 1e-10 && size.y > 1e-10 && !Number.isNaN(size.x) && !Number.isNaN(size.y)) {
+                
                 this.cardIcon.props = {
-                    viewBox: `0 0 ${size.x} ${size.y}`,
-                    content: MAKE_CARD_ICON[this.type](size)
+                    viewBox: `0 0 ${size.x} ${size.y}`,      // Update the svg viewBox.
+                    content: MAKE_CARD_ICON[this.type](size) // Recompute the svg content.
                 }
             }
         }
@@ -148,14 +167,21 @@ class Rotater extends SvgPlus {
 
     }
 
+    /** Set the content of the rotater
+     * @param {Element} content
+     * @param {boolean} immediate whether to use rotation transition or immediate.
+     * @returns {Promise<void>}
+     */
     async setContent(content, immediate = false) {
+        // If a current set is in progress add the set request to a buffer.
         if (this._settingContent) {
-            console.log("attemt to set whilst setting");
             this.contentSets.push([content, immediate]);
+        
+        // Otherwise set the content
         } else {
             this._settingContent = true;
             let element = immediate ? this.shownSlot : this.hiddenSlot;
-    
+            
             element.innerHTML = "";
             if (content instanceof Element) {
                 element.appendChild(content);
@@ -166,8 +192,6 @@ class Rotater extends SvgPlus {
             }
             this._settingContent = false;
             if (this.contentSets.length > 0) {
-                console.log("sets made whilst setting", this.contentSets);
-                
                 this.setContent(...this.contentSets.pop());
                 this.contentSets = [];
             }
@@ -185,6 +209,9 @@ class Rotater extends SvgPlus {
     get hiddenSlot(){ return this.flipped > 0.5 ? this.slot2 : this.slot1; }
 
 
+    /** Filps the rotater
+     * @return {Promise<void>}
+     */
     async flip(){
         this.flipping = true;
         this.angle =  this.angle + 180;
@@ -201,6 +228,7 @@ class Rotater extends SvgPlus {
 
     get flipped(){return this._flipped;}
 }
+
 
 class GridSpace extends SvgPlus {
     constructor(row, col){
@@ -222,6 +250,7 @@ class GridSpace extends SvgPlus {
         this.icon = icon;
     }
 }
+
 
 class Grid extends SvgPlus {
     constructor() {
@@ -352,6 +381,7 @@ class Grid extends SvgPlus {
         await Promise.all(this.allCells.map(c => c.icon ? c.icon.waitForLoad() : null))
     }
 }
+
 
 export class CommsGrid extends ResizeWatcher {
     constructor(){
