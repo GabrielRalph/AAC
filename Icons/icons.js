@@ -1,4 +1,4 @@
-import { SvgPlus, Vector} from "../../SvgPlus/4.js"
+import { SvgPlus, Vector} from "../SvgPlus/4.js"
 import { IconSourceText } from "./icons-library.js";
 
 /**
@@ -14,6 +14,8 @@ import { IconSourceText } from "./icons-library.js";
  */
 let IconsParsed = {
 }
+
+
 
 /**
  * @typedef {import('./icons-library.js').IconName} IconName
@@ -73,6 +75,16 @@ export class Icon extends SvgPlus {
             attributeFilter: ["name"], 
             subtree: false
         }, () => {this.name = this.getAttribute("name")});
+        let rs = new ResizeObserver(() => {
+            let [pos, size] = this.svgBBox;
+            let a = size.x * size.y;
+            if (a > 1e-5) {
+                this.squareViewBox();
+                rs.disconnect();
+            }
+            
+        })
+        rs.observe(this);
     }
 
 
@@ -131,4 +143,8 @@ export class Icon extends SvgPlus {
             this.onrender();
         }
     }
+}
+
+export function isIconName(name) {
+    return name in IconsParsed;
 }
