@@ -516,9 +516,13 @@ export function updateTopic(topic) {
  * Initialise firebase, retreives topics and starts data 
  * listeneres.
  */
+let init = false;
 export async function initialise(callback){
-    let prom = new Promise((r) => {
+    if (init instanceof Promise) return init;
+    let init = new Promise((r) => {
+        
         addAuthChangeListener(async (user) => {
+            console.log("user ", user);
             console.log("new user", getUID());
 
             if (user != null) {
@@ -564,5 +568,5 @@ export async function initialise(callback){
         })
     }) 
 	await _init();
-    await prom;
+    await init;
 }
