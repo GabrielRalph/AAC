@@ -351,8 +351,6 @@ class TopicsList extends SvgPlus {
      * @param {GTopicDescriptor[]}
      * */
     set topics(topics){
-        console.log(topics);
-        
         let {main} = this.wblock
         
         // Sort by owned then starter then public the date/
@@ -518,11 +516,12 @@ export class GridEditor extends ResizeWatcher {
 
 
     async initialise() {
-        await Topics.initialise();
-        let firstTopic = this.topicsList.topics[0].topicUID
-        this.topicsList.selectTopic(firstTopic, false);
-        this.showTopic(firstTopic, true);
-        await this.grid.currentGrid.waitForLoad()
+        await Topics.initialise(async () => {
+            let firstTopic = this.topicsList.topics[0].topicUID
+            this.topicsList.selectTopic(firstTopic, false);
+            this.showTopic(firstTopic, true);
+            await this.grid.currentGrid.waitForLoad()
+        });
     }
 }
 

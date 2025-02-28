@@ -61,7 +61,7 @@
  * @property {string} ownerName
  */
 
-import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, startAfter, endBefore} from "./firebase-client.js"
+import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, startAfter, endBefore, addAuthChangeListener} from "./firebase-client.js"
 /**
  * @type {Object.<GridSize, function>}
  */
@@ -516,46 +516,53 @@ export function updateTopic(topic) {
  * Initialise firebase, retreives topics and starts data 
  * listeneres.
  */
-export async function initialise(){
+export async function initialise(callback){
+    let prom = new Promise((r) => {
+        addAuthChangeListener(async (user) => {
+            console.log("new user", getUID());
 
-	let userData = await _init();
-    
-    if (userData == null) throw "No user present."
-	
-    let publicQuery = query(topicsRef(), orderByChild('public'), equalTo(true));
-	let ownedQuery = query(topicsRef(), orderByChild('owner'), equalTo(getUID()));
-
-    let proms = [["public", publicQuery], ["owned", ownedQuery]].map(async ([type, query]) => {
-        let allTopics = (await get(query)).val();
-        for (let topicUID in allTopics) TOPICS[topicUID] = allTopics[topicUID];
-
-        databaseWatchers.push(onChildAdded(query, (snapshot) => {
-			let topicUID = snapshot.key;
-            let alreadyAdded = topicUID in TOPICS
-            TOPICS[topicUID] = snapshot.val();
-            if (!alreadyAdded) {
-                console.log(type, "add", topicUID, snapshot.val().name);
-                callUpdates();
+            if (user != null) {
+                while (databaseWatchers.length > 0) databaseWatchers.pop()();
+                let publicQuery = query(topicsRef(), orderByChild('public'), equalTo(true));
+                let ownedQuery = query(topicsRef(), orderByChild('owner'), equalTo(getUID()));
+                TOPICS = {};
+                let proms = [["public", publicQuery], ["owned", ownedQuery]].map(async ([type, query]) => {
+                    let allTopics = (await get(query)).val();
+                    for (let topicUID in allTopics) TOPICS[topicUID] = allTopics[topicUID];
+        
+                    databaseWatchers.push(onChildAdded(query, (snapshot) => {
+                        let topicUID = snapshot.key;
+                        let alreadyAdded = topicUID in TOPICS
+                        TOPICS[topicUID] = snapshot.val();
+                        if (!alreadyAdded) {
+                            console.log(type, "add", topicUID, snapshot.val().name);
+                            callUpdates();
+                        }
+                    }));
+        
+                    databaseWatchers.push(onChildChanged(query, (snapshot) => {
+                        let topicUID = snapshot.key;
+                        TOPICS[topicUID] = snapshot.val();
+                        console.log(type, "change", topicUID, snapshot.val().name);
+                        callUpdates();
+                    }));
+        
+                    databaseWatchers.push(onChildRemoved(query, (snapshot) => {
+                        let topicUID = snapshot.key;
+                        if (topicUID in TOPICS) {
+                            delete TOPICS[topicUID]
+                            console.log(type, "delete", topicUID, snapshot.val().name);
+                            callUpdates();
+                        }
+                    }));
+                });
+                await Promise.all(proms);
+                await callUpdates();
+                if (callback instanceof Function) await callback(user);
             }
-		}));
-
-		databaseWatchers.push(onChildChanged(query, (snapshot) => {
-			let topicUID = snapshot.key;
-			TOPICS[topicUID] = snapshot.val();
-			console.log(type, "change", topicUID, snapshot.val().name);
-			callUpdates();
-		}));
-
-		databaseWatchers.push(onChildRemoved(query, (snapshot) => {
-			let topicUID = snapshot.key;
-            if (topicUID in TOPICS) {
-                delete TOPICS[topicUID]
-                console.log(type, "delete", topicUID, snapshot.val().name);
-                callUpdates();
-            }
-		}));
-    });
-    await Promise.all(proms);
-    await callUpdates();
+            r(user);
+        })
+    }) 
+	await _init();
+    await prom;
 }
-
