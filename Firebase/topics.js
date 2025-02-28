@@ -298,7 +298,7 @@ export async function uploadSymbol(file, name, pub, cb) {
         }
     })
 
-    let res = await callFunction("gridSymbols-upload", {dataBuffer,public:pub,name,type,uploadID});
+    let res = await callFunction("gridSymbols-upload", {dataBuffer,public:pub,name,type,uploadID}, "australia-southeast1");
     return res.data;
 }
 
@@ -311,7 +311,7 @@ export async function uploadSymbol(file, name, pub, cb) {
  */
 export async function deleteSymbol(value, type) {
     if (type == "id" || type == "name") {
-        let res = await callFunction("gridSymbols-delete", {value, type});
+        let res = await callFunction("gridSymbols-delete", {value, type}, "australia-southeast1");
         return res.data;
     } else {
         throw "invalid delete type."
@@ -327,7 +327,7 @@ export async function deleteSymbol(value, type) {
  * @return {Promise<IconInfo[]>}
  */
 export async function searchSymbols(text, mode = "all", type = "both"){
-  let results = await callFunction("gridSymbols-search", {text, mode: mode, type: type});
+  let results = await callFunction("gridSymbols-search", {text, mode: mode, type: type}, "australia-southeast1");
   return results.data;
 }
 
@@ -519,7 +519,7 @@ export function updateTopic(topic) {
 let init = false;
 export async function initialise(callback){
     if (init instanceof Promise) return init;
-    let init = new Promise((r) => {
+    init = new Promise((r) => {
         
         addAuthChangeListener(async (user) => {
             console.log("user ", user);
