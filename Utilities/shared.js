@@ -354,7 +354,6 @@ export class OptionSearch extends SvgPlus {
         super("option-search");
         let {options} = data;
         this.createChild("input");
-        this.createChild()
     }
 }
 
@@ -589,4 +588,13 @@ export class PromiseChain {
         }
         return res;
     }
+}
+
+
+export function attachScrollWatcher(element) {
+    let o = new ResizeObserver(() => {
+        console.log(element.scrollHeight);
+        
+    })
+    o.observe(element);
 }

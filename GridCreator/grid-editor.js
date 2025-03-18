@@ -8,7 +8,7 @@ import {SvgPlus} from "../SvgPlus/4.js"
 import * as Topics from "../Firebase/topics.js"
 import { CommsGrid, GridIconSymbol } from "./grid.js";
 import { SearchWidget } from "./symbol-search.js";
-import { WBlock, ToggleInput, ResizeWatcher, PopupPromt, WBInput} from "../Utilities/shared.js";
+import { WBlock, ToggleInput, ResizeWatcher, PopupPromt, WBInput, attachScrollWatcher} from "../Utilities/shared.js";
 import { Icon } from "../Icons/icons.js";
 
 function compare(a, b) {
@@ -243,7 +243,7 @@ class TopicsList extends SvgPlus {
         super("div");
         this.class = "topics-list"
         // Add logo at top
-        this.createChild("img", {src: "https://grids.squidly.com.au/Assets/logo-banner.svg"})
+        // this.createChild("img", {src: "https://grids.squidly.com.au/Assets/logo-banner.svg"})
 
         // Create WBlobck
         let wblock = this.createChild(WBlock);
@@ -262,6 +262,9 @@ class TopicsList extends SvgPlus {
                 this.filterTopics(searchInput.value)
             }
         }})
+
+        attachScrollWatcher(wblock.main);
+        
 
         // Deselect if no icon is clicked
         wblock.main.onclick = () => this.selectTopic(null, true);
