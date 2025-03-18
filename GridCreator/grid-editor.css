@@ -76,6 +76,8 @@ grid-editor[edit] grid-icon {
     scrollbar-width: none;
 }
 
+
+
 .popup-promt {
     position: fixed;
     top: 0;
@@ -125,6 +127,8 @@ grid-editor[edit] grid-icon {
 .editor-panel .symbol > img {
     width: 50%;
 }
+
+
 
 grid-editor[edit] .editor-panel {
     transform: translateX(0);

@@ -197,10 +197,23 @@ export class SearchWidget extends SvgPlus {
             }
         }, "upload-img");
 
+        this.attachQueryListeners(root)
+    }
+
+    attachQueryListeners(root) {
         if (root instanceof Element) {
             root.addEventListener("image-search-query", (e) => {
                 let getURL = async () => {
                     let res = await this.getSymbol();
+                    return res?.url
+                }
+                e.queryPromise = getURL();
+            });
+            root.addEventListener("best-image-search-query", (e) => {
+                console.log(e);
+                
+                let getURL = async () => {
+                    let res = await this.searchBest(e.searchPhrase);
                     return res?.url
                 }
                 e.queryPromise = getURL();
@@ -256,17 +269,25 @@ export class SearchWidget extends SvgPlus {
         let text = this.searchInput.value;
         if (text.length > 0) {
             this.loading = true;
-            let items = await searchSymbols(text, mode);
+            let items = await searchSymbols(text.toLowerCase(), mode);
             this.loading = false;
             this.showResults(items);
         }
+    }
+
+    async searchBest(text) {
+        this.searchInput.value = text;
+        await this.searchSymbols();
+        console.log(this.lastSearchIcons);
+        
+        return this.lastSearchIcons[0].symbol;
     }
 
     showResults(items) {
         this.main.innerHTML = "";
         let list = this.main.createChild("div", {class: "symbols-list"});
         items.sort((a, b) => a.match - b.match)
-        items.slice(0, 12).map(i => {
+        this.lastSearchIcons = items.slice(0, 12).map(i => {
             let item = list.createChild("div", {
                 name: i.name,
                 match: i.match,
@@ -277,6 +298,7 @@ export class SearchWidget extends SvgPlus {
                     click: () => this.close(i)
                 }
             })
+            item.symbol = i;
             item.toggleAttribute("new", !!i.new);
             item.toggleAttribute("owned", !!i.owned);
             if (i.owned) {
@@ -298,8 +320,20 @@ export class SearchWidget extends SvgPlus {
                     }
                 }, "trash");
             }
+            return item;
         })
     }
+}
+
+export async function bestImageSearch(phrase, element) {
+    const event = new Event("best-image-search-query", {bubbles: true});
+    event.searchPhrase = phrase;
+    element.dispatchEvent(event);
+    let symbol = null;
+    if (event.queryPromise instanceof Promise) {
+        symbol = await event.queryPromise;
+    }
+    return symbol;
 }
 
 

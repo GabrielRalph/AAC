@@ -22,6 +22,21 @@ w-block .main {
     background: var(--c-light);
 }
 
+w-block .main[scrollable] {
+    position: relative;
+}
+w-block .main[scrollable]::after {
+    display: block;
+    content: " ";
+    background-color: rgba(127, 122, 122, 0.328);
+    --size: 0.3em;
+    width: var(--size);
+    border-radius: var(--size) 0 0 var(--size);
+    height: calc(var(--height) * var(--bar-scale));
+    top: calc(var(--y-start) + var(--bar-pos) * var(--height) * (1 - var(--bar-scale)) - 1em * var(--bar-pos));
+    left: calc(var(--x-end) - var(--size));
+    position: fixed;
+}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~ WB-INPUTS ~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

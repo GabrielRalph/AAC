@@ -7,7 +7,7 @@
 import {SvgPlus} from "../SvgPlus/4.js"
 import * as Topics from "../Firebase/topics.js"
 import { CommsGrid, GridIconSymbol } from "./grid.js";
-import { SearchWidget } from "./symbol-search.js";
+import { bestImageSearch, SearchWidget } from "./symbol-search.js";
 import { WBlock, ToggleInput, ResizeWatcher, PopupPromt, WBInput, attachScrollWatcher} from "../Utilities/shared.js";
 import { Icon } from "../Icons/icons.js";
 
@@ -111,6 +111,16 @@ class EditPanel extends SvgPlus {
     selectItem(item) {
         this.innerHTML = "";
 
+        let url2symbol = (url) => {
+            if (typeof url == "string") {
+                let match = url.match(/icons%2Fall%2F([^?]+)\?/);
+                let id = "-"
+                if (match) id = match[1];
+                return {url, id};
+            } else {
+                return {url: "", id: ""};
+            }
+        }
         let topicUIDS = Topics.getTopics().map(t => [t.name + ' - ' + t.ownerName, t.topicUID]);
         let types = Topics.getGItemTypes().map(t => [t + (t == "topic" ? " (no utterance)" : ""), t])
         let inputs = {
@@ -118,16 +128,7 @@ class EditPanel extends SvgPlus {
             displayValue: {name: "Display Value", defaultValue: item.displayValue, type: "text"},
             utterance: {name: "Utterance <i style='font-size:0.8em'>If different from display value</i>", defaultValue: item.utterance, type: "text"},
             symbol: {name: "Icon Symbol", type: "imageSelect", defaultValue: item.symbol.url,
-                parser: (url) => {
-                    if (typeof url == "string") {
-                        let match = url.match(/icons%2Fall%2F([^?]+)\?/);
-                        let id = "-"
-                        if (match) id = match[1];
-                        return {url, id};
-                    } else {
-                        return {url: "", id: ""};
-                    }
-                }
+                parser: url2symbol,
             },
             type: {name: "Type", options: types, defaultValue: item.type, type: "selection"},
             topicUID: {name: "Topic", options: topicUIDS, defaultValue: item.topicUID, type: "selection"},
@@ -141,7 +142,19 @@ class EditPanel extends SvgPlus {
         }
 
 
-        let {type, hidden, symbol} = inputs;
+        let {type, hidden, symbol, displayValue} = inputs;
+
+        let oldval = displayValue.value;
+        displayValue.events = {
+            change: async () => {
+                let newVal = displayValue.value;
+                if (oldval != newVal) {
+                    symbol.value = await bestImageSearch(newVal, this)
+                }
+                
+            }
+        }
+
         type.events = {change: () => this.setAttribute("type", Topics.isTopicItem(type.value) ? "topic":type.value)}
         this.setAttribute("type", Topics.isTopicItem(type.value) ? "topic":type.value)
 
