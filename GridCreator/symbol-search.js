@@ -3,7 +3,7 @@ import {SvgPlus} from "../SvgPlus/4.js"
 import {Icon} from "../Icons/icons.js"
 import { searchSymbols, deleteSymbol, uploadSymbol } from "../Firebase/topics.js";
 
-const MAX_FILE_SIZE = 50 * 1024;
+const MAX_FILE_SIZE = 50 * 1000;
 const STATUS_TEXT = {
     "0": "Starting",
     "1": "Converting to PNG",
@@ -64,6 +64,7 @@ class UploadForm extends SvgPlus {
         row = inputs.createChild("div", {class: "row"});
         row.createChild("span", {content: "Make Public: "})
         let pub = row.createChild(ToggleInput);
+        pub.value = true;
         this.publicInput = pub;
 
         this.getImage();
@@ -82,20 +83,21 @@ class UploadForm extends SvgPlus {
         })
 
         const file = a.files[0];
+
         this.fileError = file.size > MAX_FILE_SIZE;
         if (file.size > MAX_FILE_SIZE) {
-            this.upicon.setAttribute("error", `Size exceeds ${Math.round(MAX_FILE_SIZE / 1024)}kB`)
+            this.upicon.setAttribute("error", `Size exceeds ${Math.round(MAX_FILE_SIZE / 1000)}kB`)
         } else {
             this.upicon.toggleAttribute("error", false)
             this.file = file;
         }
-        this.saveIcon.toggleAttribute("disabled", (this.nameInput.value.length == 0) || this.fileError)
-
         let url = await new Promise((resolve, reject) => {
             let fr = new FileReader();
             fr.onload = () => resolve(fr.result)
             fr.readAsDataURL(a.files[0])
         })
+        this.nameInput.value = file.name.split('.').slice(0, -1).join(".");
+        this.saveIcon.toggleAttribute("disabled", (this.nameInput.value.length == 0) || this.fileError)
         this.upicon.styles = {
             "background-image": `url("${url}")`
         }
@@ -140,12 +142,15 @@ class UploadForm extends SvgPlus {
     }
 }
 
-export class SearchWidget extends WBlock {
+export class SearchWidget extends SvgPlus {
     constructor(){
-        super();
-        this.class = "search-widget";
+        super("div");
+        this.class = "search-window";
+        let block = this.createChild(WBlock, {class: "search-widget"});
+        this.main = block.main;
+        this.head = block.head;
 
-        let col = this.head.createChild("div", {class: 'col'});
+        let col = block.head.createChild("div", {class: 'col'});
         let row = col.createChild("div", {class: "row"})
         this.searchInput = row.createChild("input", {
             events: {
@@ -156,6 +161,7 @@ export class SearchWidget extends WBlock {
                 }
             }
         })
+
         row.createChild(Icon, {
             events: {
                 click: () => {
@@ -178,17 +184,39 @@ export class SearchWidget extends WBlock {
         d.createChild("span", {content: "owned"});
         this.modeToggle = d.createChild(ToggleInput)
 
-        row.createChild(Icon, {
+
+        this.uploadButton = row.createChild(Icon, {
             events: {
                 click: () => {
-                    this.uploadIcon()
+                    if (this.isUploading) {
+                        this.goBackToSearch();
+                    } else {
+                        this.uploadIcon();
+                    }
                 }
             }
         }, "upload-img");
+
+        document.body.addEventListener("image-search-query", (e) => {
+            let getURL = async () => {
+                let res = await this.getSymbol();
+                return res?.url
+            }
+            e.queryPromise = getURL();
+        });
     }
 
+    /** @param {boolean} bool */
     set loading(bool) {
         this.toggleAttribute("loading", bool);
+    }
+
+    /** @return {Promise<import("../Utilities/icons.js").IconInfo>} */
+    async getSymbol(){
+        this.toggleAttribute("shown", true);
+        let results = await new Promise((r) => this.onclose = r);
+        this.toggleAttribute("shown", false);
+        return results;
     }
 
     close(result) {
@@ -197,12 +225,26 @@ export class SearchWidget extends WBlock {
         }
     }
 
+    goBackToSearch(){
+        this.main.innerHTML = "";
+        this.main.appendChild(this.lastSearchResults);
+        this.isUploading = false;
+        this.uploadButton.name = "upload-img";
+    }
+
     uploadIcon(){
+        this.isUploading = true;
+        this.uploadButton.name = "back";
+        let lastSearch = new DocumentFragment();
+        [...this.main.children].forEach(c => lastSearch.append(c))
+        this.lastSearchResults = lastSearch;
         this.main.innerHTML = "";
         this.main.createChild(UploadForm, {events: {
             complete: (event) => {
                 this.modeToggle.value = false;
-                this.showResults(event.results)
+                this.showResults(event.results);
+                this.isUploading = false;
+                this.uploadButton.name = "upload-img";
             }
         }}, this);
     }

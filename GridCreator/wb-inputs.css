@@ -1,0 +1,233 @@
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~ W-BLOCK ~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+w-block {
+    display: flex;
+    flex-direction: column;
+    border-radius: 1em;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+w-block .head{
+    background-color: var(--c-dark);
+    color: white;
+}
+
+w-block .main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--c-light);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~ WB-INPUTS ~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+wb-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+wb-inputs * {
+    font-size: var(--editor-font-size);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~ TOGGLE INPUT ~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+toggle-input {
+    --h: 1.2em;
+    --b: 0.1em;
+    --w: calc(var(--h) * 1.6);
+
+    display: block;
+    height: var(--h);
+    width: var(--w);
+    position: relative;
+    background: white;
+    border-radius: var(--h);
+}
+w-block toggle-input input {
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+toggle-input .circle {
+    margin: var(--b);
+    border-radius: var(--h);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--h) - 2 * var(--b));
+    height: calc(var(--h) - 2 * var(--b));
+    background: gray;
+    pointer-events: none;
+    transition: left 0.1s ease-in;
+
+}
+toggle-input input:checked ~ .circle {
+    left: calc(var(--w) - var(--h));
+    background: var(--toggle-color);
+}
+
+w-block[name = "Public"] {
+    --toggle-color: var(--c-public);
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~ TEXT/SELECT INPUT ~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+w-block textarea:focus, w-block select:focus, w-block input:focus {
+    box-shadow: 1px 1px 7px 2px #201e1e54;
+    outline: none;
+}
+w-block textarea {
+    resize: none;
+    border: none;
+    height: 100%;
+    border-radius: 0 0 0.5em 0.5em;
+    font: inherit;
+    padding: 0.25em;
+}
+w-block select, w-block input{
+    border: none;
+    outline: none;
+    border-radius: 0 0 0.5em 0.5em;
+    width: calc(100% - 1em);
+    padding: 0.25em;
+    font: inherit;
+}
+w-block input {
+    width: calc(100% - 1.5em);
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~ IMAGE SELECT INPUT ~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+image-select {
+    display: block;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+image-select .icon {
+    height: 2em;
+    --icon-color: var(--c-dark);
+    --icon-color-hover: black;
+    transition: transform 0.3s var(--wave);
+}
+image-select img {
+    height: 10em;
+}
+
+image-select:not([img]) img {
+    display: none;
+}
+image-select:not([img="loaded"]) .delete {
+    display: none;
+}
+image-select[img] {
+    justify-content: center;
+}
+image-select[img] .icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+image-select[img] .search {
+    bottom: 0;
+    top: unset;
+    left: 0;
+    right: unset;
+}
+image-select[img] .paste {
+    bottom: 0;
+    top: unset;
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~ ORDERED LIST INPUT ~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+ordered-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+ordered-list > div {
+    padding: 0.5em;
+    position: relative;
+}
+ordered-list > div[selected] {
+    background: white;
+}
+ordered-list > div:last-of-type {
+    border-radius: 0 0 0.5em 0.5em;
+}
+ordered-list > div > .icon[name="trash"] {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.5em;
+    border-radius: 1em;
+    --icon-color: var(--c-semi);
+    --icon-color-hover: black;
+    transition: transform 0.2s var(--wave), opacity 0.2s var(--wave);
+    opacity: 0;
+}
+ordered-list > div:hover > .icon[name="trash"] {
+    opacity: 1;
+}
+ordered-list > div > .icon[name="trash"]:hover {
+    transform: translateY(-50%) scale(1.2);
+}
+ordered-list[no-delete] > div > .icon[name="trash"] {
+    display: none;
+}
+w-block[type="orderedList"] .head .icon[name="add"][no-add] {
+    display: none;
+}
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+button {
+    outline: none;
+    border: none;
+    border-radius: 0.5em;
+    font: inherit;
+    display: flex;
+    align-items: center;
+     --icon-color: var(--c-dark);
+     --icon-color-hover: black;
+}
+button:hover {
+    --icon-color: var(--icon-color-hover);
+    box-shadow: -2px 2px 3px rgba(128, 128, 128, 0.364);
+    background-color: var(--c-semi);
+}
+button .icon {
+    font-size: 1.3em;
+    padding: 0.3em;
+}
+button .icon[name="close"] {
+    font-size: 1em;
+    padding: 0.45em;
+}
+button .icon[name="add"] {
+    font-size: 1em;
+    padding: 0.3em;
+}

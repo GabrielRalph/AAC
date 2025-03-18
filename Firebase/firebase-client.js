@@ -280,6 +280,8 @@ export async function getFile(path) {
   return await getBlob(storageRef(path));
 }
 
+window.signOut = signOut;
+window.signIn = signInWithEmailAndPassword;
 export {
         reauthenticateWithCredential, 
         updatePassword, 

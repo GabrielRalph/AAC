@@ -1,0 +1,243 @@
+.search-window {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.261);
+
+}
+
+.search-window:not([shown]) {
+    visibility: hidden;
+}
+
+
+.search-widget {
+    --widget-size: min(10em, 18vmin);
+    --gap: 0.5em;
+    --w-x: 4;
+    --w-y: 3;
+    
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: calc(var(--widget-size) * var(--w-x) + (2 + var(--w-x) - 1) * var(--gap));
+
+    border: var(--gap) solid var(--c-dark);
+    background-color: var(--c-dark);
+    box-shadow: 1px 2px 5px black;
+}
+.search-widget .head {
+    background-color: transparent;
+}
+.search-window[loading] .head {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.search-widget .main {
+    min-height: calc(var(--w-y) * var(--widget-size) + (1 + var(--w-y)) * var(--gap));
+}
+.search-widget .head .col {
+    margin-bottom: var(--gap);
+}
+.search-widget .head .row,
+.search-widget .head .col {
+    gap: var(--gap);
+}
+.search-widget .head input {
+    border-radius: var(--gap);
+}
+
+.search-widget .head .icon {
+    font-size: 1.5em;
+}
+
+.search-widget .main {
+    border-radius: var(--gap);
+}
+
+
+.upload-form {
+    display: flex;
+    gap: var(--gap);
+    margin: var(--gap);
+    flex-direction: column;
+    align-items: center;
+}
+.upload-form .upload-icon {
+    width: 7em;
+    height: 7em;
+    background-color: var(--word-color);
+    border-radius: var(--gap);
+    position: relative;
+    cursor: pointer;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.upload-icon[error] {
+    border: red solid 2px;;
+}
+
+.upload-icon[error]::after {
+    content: attr(error);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: red;
+    background: var(--c-dark);
+    border-radius: 0.3em;
+    margin: 0.2em;
+    padding: 0.2em;
+    text-align: center;
+}
+
+.upload-form .upload-icon .icon {
+    margin: 0.1em;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 2em;
+    background: var(--c-dark);
+    border-radius: 0.22em;
+
+}
+.upload-form .upload-icon:hover .icon {
+    --icon-color: var(--icon-color-hover);
+}
+
+.upload-form .col {
+    gap: var(--gap);
+}
+.upload-form .row {
+    gap: var(--gap);
+}
+.upload-form .row span {
+    white-space: nowrap;
+}
+.upload-form .row input {
+    border-radius: var(--gap);
+}
+.upload-form .main-row {
+    align-items: flex-start;
+    position: relative;
+}
+.upload-form[loading] .main-row {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+
+.upload-form .save-icon {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: var(--c-dark);
+    color: white;
+    padding: 0.3em;
+    padding-left: 0.4em;
+    border-radius: 0.5em;
+    cursor: pointer;
+}
+
+.save-icon[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.save-icon .icon {
+    font-size: 1.3em;
+}
+.save-icon:hover  {
+    --icon-color: var(--icon-color-hover);
+}
+
+.upload-form .progress-bar {
+    height: 1em;
+    width: 100%;
+    border-radius: 1em;
+    position: relative;
+    --percent: 1;
+    --progress-text: " ";
+    overflow: hidden;
+    background: #b4d5b8;
+}
+
+.progress-bar::before {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0; 
+    right: calc( var(--percent) * 100%);
+    bottom: 0;
+    background: rgb(43 220 67);
+}
+.progress-bar::after {
+    position: absolute;
+    content: var(--progress-text);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8em;
+}
+
+
+.symbols-list {
+    margin: var(--gap);
+    flex-wrap: wrap;
+    display: flex;
+    gap: var(--gap);
+}
+.symbols-list > div{
+    background-size: contain;
+    background-color: var(--word-color);
+    width: calc(var(--widget-size) - 2 * var(--gap));
+    height: calc(var(--widget-size) - 2 * var(--gap));
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--gap);
+    position: relative;
+    border: var(--gap) var(--word-color) solid;
+    cursor: pointer;
+    
+}
+
+.symbols-list > div:hover {
+    background-color: #71abe9;
+    border-color: #71abe9;
+}
+/* .symbols-list > div:hover::after {
+    content: attr(match);
+    position: absolute;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    margin: 0.2em;
+    padding: 0.2em;
+    border-radius: 0.3em;
+    background: var(--c-dark);
+    color: white;
+    text-align: center;
+} */
+
+.symbols-list > div[new] {
+    box-shadow: 0px 0px 0.3em 2px rgb(30 196 0);
+}
+
+.symbols-list .icon[name="trash"] {
+    --icon-color: var(--c-dark);
+    --icon-color-hover: black;
+    transition: 0.2s ease opacity;
+    font-size: 1.2em;
+    opacity: 0;
+}
+
+.symbols-list > div:hover .icon[name="trash"] {
+    opacity: 1;
+}

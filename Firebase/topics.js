@@ -66,11 +66,15 @@ import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAd
  * @type {Object.<GridSize, function>}
  */
 const GRID_SIZES = {
+    "1x1": ()=>[1,1],
     "2x1": ()=>[2,1],
     "2x2": ()=>[2,2],
+    "3x1": ()=>[3,1],
     "3x2": ()=>[3,2],
     "3x3": ()=>[3,3],
-    "4x3": ()=>[4,3]
+    "4x1": ()=>[4,1],
+    "4x2": ()=>[4,2],
+    "4x3": ()=>[4,3],
 }
 const MAX_ITEMS = 4 * 3;
 
@@ -81,6 +85,11 @@ const GITEM_TYPES = {
     "verb": "word",
     "adjective": "word",
     "topic": "topic",
+    "topic-normal": "topic",
+    "topic-starter": "topic",
+    "topic-noun": "topic",
+    "topic-verb": "topic",
+    "topic-adjective": "topic",
 }
 
 /** @type {Object.<string, GTopic>} */
@@ -137,14 +146,15 @@ function parseAndCopyGItem(item, withErrors = false) {
             parsedItem.type = "normal"
             if (withErrors) throw "Non hidden GItem must have a valid type."
         }
-    
-        if (parsedItem.type == "topic") {
+        
+        let isTopic = isTopicItem(parsedItem.type)
+        if (isTopic) {
             if (typeof topicUID == "string"){
                 parsedItem.topicUID = topicUID;
                 if (withErrors && !hasTopic(topicUID)) {
                     throw `A GITem with type 'topic' must contain a valid linking topic. No topic has the topic UID ${item.topicUID}.`
                 }
-            } else if (parsedItem.type == "topic" && withErrors) {
+            } else if (withErrors) {
                 throw "A GItem with type 'topic' must have a linking topic UID."
             }
         }
@@ -412,6 +422,13 @@ export function getGItemTypes() {
     return Object.keys(GITEM_TYPES)
 }
 
+/**
+ * @return {GItemType}
+ */
+export function isTopicItem(itemType) {
+    return itemType in GITEM_TYPES && GITEM_TYPES[itemType] === "topic";
+}
+
 /** Returns a list of topic descriptors
  * @return {[GTopicDescriptor]}
  */
@@ -467,6 +484,19 @@ export function getTopic(topicUID){
 
 /**
  * @param {string} topicUID
+ * @return {GTopic}
+ */
+export function getTopicCopy(topicUID){
+    let topic = getTopic(topicUID);
+    if (topic) {
+        topic.topicUID = "new"
+        topic.name += " Copy";
+    }
+    return topic;
+}
+
+/**
+ * @param {string} topicUID
  * 
  * @return {boolean}
  */
@@ -508,6 +538,8 @@ export function updateTopic(topic) {
     }
 
     topic = parseAndCopyTopic(topic);
+    console.log("SETTING", topic);
+    
 	update(topicsRef(uid), topic);
 }
 

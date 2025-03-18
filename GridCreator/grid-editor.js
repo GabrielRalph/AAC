@@ -8,7 +8,7 @@ import {SvgPlus} from "../SvgPlus/4.js"
 import * as Topics from "../Firebase/topics.js"
 import { CommsGrid, GridIconSymbol } from "./grid.js";
 import { SearchWidget } from "./symbol-search.js";
-import { WBlock, ToggleInput, ResizeWatcher, PopupPromt} from "../Utilities/shared.js";
+import { WBlock, ToggleInput, ResizeWatcher, PopupPromt, WBInput} from "../Utilities/shared.js";
 import { Icon } from "../Icons/icons.js";
 
 function compare(a, b) {
@@ -39,9 +39,8 @@ class EditPanel extends SvgPlus {
 
         this.gridEditor = gridEditor;
 
-        this.grid.events ={
-            "icon-select": (e) => {
-                
+        this.grid.events = {
+            "icon-select": (e) => {    
                 if (this.topic != null) {
                     let idx = e.selectedIconIndex;
                     let item = this.topic.items[idx];
@@ -55,61 +54,6 @@ class EditPanel extends SvgPlus {
                 
             }
         }
-    }
-
-    create_text_input(name, defaultValue) {
-        let textWB = this.createChild(WBlock, {name: name});
-        textWB.head.createChild("div", {content: name});
-        let textValue = textWB.main.createChild("input", {
-            value: defaultValue,
-        });
-        textValue.container = textWB;
-        return textValue;
-    }
-
-    create_selection_input(name, options, defaultValue) {
-        let sizeWB = this.createChild(WBlock, {name: name});
-        sizeWB.head.createChild("div", {content: name});
-        let sizes = sizeWB.main.createChild("select");
-        for (let option of options) {
-            let value = option;
-            let content = option;
-            if (Array.isArray(option)) [content, value] = option;
-            sizes.createChild("option", {content: content, value: value})
-        }
-        sizes.value = defaultValue;
-        sizes.container = sizeWB;
-        return sizes;
-    }
-
-    create_icon_symbol_input(defaultValue) {
-        let iconWB = this.createChild(WBlock, {name: "symbol"});
-        iconWB.head.createChild("div", {content: "Icon Symbol"});
-        iconWB.main.createChild(GridIconSymbol, {}, defaultValue)
-        iconWB.value = defaultValue;
-        iconWB.events = {
-            click: async () => {
-                let value = await this.gridEditor.selectSymbol();
-                
-                if (value) {
-                    iconWB.value = value;
-                    iconWB.main.innerHTML = "";
-                    iconWB.main.createChild(GridIconSymbol, {}, value)
-                }
-
-            }
-        }
-        return iconWB;
-    }
-
-    create_toggle_input(name, defaultValue){
-        let iconWB = this.createChild(WBlock, {name: name});
-        let row = iconWB.head.createChild("div", {class: "row"});
-        row.createChild("span", {content: name});
-        let input = row.createChild(ToggleInput);
-        input.container = iconWB;
-        input.value = defaultValue;
-        return input;
     }
 
     validateItem(inputs) {
@@ -138,12 +82,12 @@ class EditPanel extends SvgPlus {
     validateTopic(inputs) {
         let valid = true;
         if (!inputs.name.value) {
-            inputs.name.container.toggleAttribute('error', true);
+            inputs.name.toggleAttribute('error', true);
             valid = false;
         }
 
         if (!inputs.size.value) {
-            inputs.size.container.toggleAttribute('error', true);
+            inputs.size.toggleAttribute('error', true);
             valid = false;
         }
 
@@ -161,29 +105,50 @@ class EditPanel extends SvgPlus {
         }
     }
 
-    selectItem(item, idx) {
+    /** 
+     * @param {GItem} item 
+     */
+    selectItem(item) {
         this.innerHTML = "";
 
-        let topicUIDS = Topics.getTopics().map(t => [t.name, t.topicUID]);
+        let topicUIDS = Topics.getTopics().map(t => [t.name + ' - ' + t.ownerName, t.topicUID]);
+        let types = Topics.getGItemTypes().map(t => [t + (t == "topic" ? " (no utterance)" : ""), t])
         let inputs = {
-            hidden: this.create_toggle_input("Hidden", item.hidden),
-            displayValue:  this.create_text_input("Display Value", item.displayValue),
-            utterance: this.create_text_input("Utterance", item.utterance),
-            symbol: this.create_icon_symbol_input(item.symbol),
-            type: this.create_selection_input("Type", Topics.getGItemTypes(), item.type),
-            topicUID: this.create_selection_input("Topic", topicUIDS, item.topicUID),
-        }
-        for (let k in inputs) {
-            let input = inputs[k]
-            input.events = {focus: () => input.container.toggleAttribute("error", false)}
+            hidden: {name: "Hidden", defaultValue: item.hidden, type: "toggle"},
+            displayValue: {name: "Display Value", defaultValue: item.displayValue, type: "text"},
+            utterance: {name: "Utterance <i style='font-size:0.8em'>If different from display value</i>", defaultValue: item.utterance, type: "text"},
+            symbol: {name: "Icon Symbol", type: "imageSelect", defaultValue: item.symbol.url,
+                parser: (url) => {
+                    if (typeof url == "string") {
+                        let match = url.match(/icons%2Fall%2F([^?]+)\?/);
+                        let id = "-"
+                        if (match) id = match[1];
+                        return {url, id};
+                    } else {
+                        return {url: "", id: ""};
+                    }
+                }
+            },
+            type: {name: "Type", options: types, defaultValue: item.type, type: "selection"},
+            topicUID: {name: "Topic", options: topicUIDS, defaultValue: item.topicUID, type: "selection"},
         }
 
-        let {type, hidden} = inputs;
-        type.events = {change: () => this.setAttribute("type", type.value)}
-        this.setAttribute("type", type.value)
+        for (let k in inputs) {
+            let input = this.createChild(WBInput, {events: {
+                focus: () => input.container.toggleAttribute("error", false)
+            }}, inputs[k])
+            inputs[k] = input;
+        }
+
+
+        let {type, hidden, symbol} = inputs;
+        type.events = {change: () => this.setAttribute("type", Topics.isTopicItem(type.value) ? "topic":type.value)}
+        this.setAttribute("type", Topics.isTopicItem(type.value) ? "topic":type.value)
 
         hidden.events = {change: () => this.toggleAttribute("i-hidden", hidden.value)}
         this.toggleAttribute("i-hidden", hidden.value)
+
+        symbol.events = {click: () => symbol.input.searchQuery()}
 
         let row = this.createChild("div", {class: "row bigger"})
         row.createChild("button", {events: {
@@ -192,6 +157,8 @@ class EditPanel extends SvgPlus {
                     for (let key in inputs) {
                         item[key] = inputs[key].value;
                     }
+                    console.log(item);
+                    
                     this.grid.currentGrid.topic = this.topic;
                     this.grid.unselectIcon();
                     this.showTopicSettings();
@@ -214,40 +181,32 @@ class EditPanel extends SvgPlus {
         this.toggleAttribute("i-hidden", false)
         
         if (topic != null) {
-            let name = this.create_text_input("Topic Name", topic.name);
-            name.events = {
+            let name = this.createChild(WBInput, {events: {
                 change: () => {
                     topic.name = name.value;
-                }
-            }
-    
-            let size = this.create_selection_input("Grid Size",Topics.getGridSizes(), topic.size)
-            size.events = {
+                },
+                focus: () => name.toggleAttribute("error", false)
+            }}, {type: "text", name: "Topic Name", defaultValue: topic.name});
+        
+            let size = this.createChild(WBInput, {events: {
                 change: () => {
                     topic.size = size.value;
                     this.grid.topic = topic;
-                }
-            }
+                },
+                focus: () => size.toggleAttribute("error", false)
+            }}, {name: "Grid Size", type: "selection", options: Topics.getGridSizes(), defaultValue: topic.size})
 
-
-            let isPublic = this.create_toggle_input("Public", topic.public);
-            isPublic.events = {
+            let isPublic = this.createChild(WBInput, {events: {
                 change: () => {
                     topic.public = isPublic.value
-                }
-            }
-
-            let inputs = {name, size}
-            for (let k in inputs) {
-                let input = inputs[k]
-                input.events = {focus: () => input.container.toggleAttribute("error", false)}
-            }
+                },
+            }}, {name: "Public", type: "toggle", defaultValue: topic.public});
 
             let isAdd = topic.topicUID == "new"
             let row = this.createChild("div", {class: "row bigger"})
             row.createChild("button", {events: {
                 click: () => {
-                    if (this.validateTopic(inputs)) {
+                    if (this.validateTopic({name, size})) {
                         if (isAdd) {
                             this.dispatchEvent(new Event("add"))
                         } else {
@@ -298,13 +257,19 @@ class TopicsList extends SvgPlus {
             click: () => this.dispatchEvent(new Event("add"))
         }}).createChild(Icon, {}, "add")
 
+        let searchInput = wblock.head.createChild("input",{ events: {
+            input: () => {
+                this.filterTopics(searchInput.value)
+            }
+        }})
+
         // Deselect if no icon is clicked
         wblock.main.onclick = () => this.selectTopic(null, true);
 
         // Create edit and trash buttons.
         let buttons = this.createChild("div", {class: "topics-buttons row bigger"});
-        ["trash", "edit"].forEach(key => {
-            buttons.createChild("button", {events: {
+        ["copy", "trash", "edit"].forEach(key => {
+            buttons.createChild("button", {type: key, events: {
                 click: () => this.dispatchEvent(new Event(key))
             }}).createChild(Icon, {}, key);
         })
@@ -313,6 +278,28 @@ class TopicsList extends SvgPlus {
         Topics.onTopicsUpdate(() => this.topics = Topics.getTopics())
     }
 
+    filterTopics(searchPhrase) {
+        let isMatch = (a, b) => a.indexOf(b) !== -1 || b.indexOf(a) !== -1;
+        /**
+         * @param {{topic: GTopicDescriptor}} icon
+         */
+        let isFullMatch = (icon, b) => {
+            if (typeof b !== "string" || b === "") {
+                return true;
+            } else {
+                let a1 = icon.topic.name.toLowerCase();
+                let a2 = icon.topic.ownerName.toLowerCase();
+                b = b.toLowerCase();
+                return isMatch(a1, b) || isMatch(a2, b)
+            }
+        }
+
+        let topicIcons = Object.values(this.topicIcons);
+        
+        topicIcons.forEach(icon => {
+            icon.toggleAttribute("hide", !isFullMatch(icon, searchPhrase))
+        })
+    }
 
     /**
      * @param {string} topicUID
@@ -374,6 +361,7 @@ class TopicsList extends SvgPlus {
                     }
                 }
             });
+            ticon.topic = topic;
             let text = ticon.createChild("span", {content: topic.name});
             text.createChild("i", {content: "<br>" + topic.ownerName })
         
@@ -409,13 +397,10 @@ export class GridEditor extends ResizeWatcher {
 
     constructor(){
         super("grid-editor");
-        let searchWindow = this.createChild("div", {class: "search-window"})
-        this.symbolSeach = searchWindow.createChild(SearchWidget);
-        this.searchWindow = searchWindow;
+        this.symbolSeach = this.createChild(SearchWidget);
 
         let topicsList = this.createChild(TopicsList);
         this.topicsList = topicsList;
-
 
         let grid = this.createChild("div", {class: "grid-space"});
         this.grid = grid.createChild(CommsGrid, {events: {
@@ -441,7 +426,8 @@ export class GridEditor extends ResizeWatcher {
             edit: () => this.editTopic(),
             trash: () => this.deleteTopic(),
             select: () => this.showTopic(topicsList.selected, false),
-            add: () => this.createTopic()
+            add: () => this.createTopic(),
+            copy: () => this.copyTopic()
         }
 
         this.editor.events = {
@@ -474,9 +460,17 @@ export class GridEditor extends ResizeWatcher {
         this.grid.setTopic(topic, true);
     }
 
+    copyTopic(){
+        let copy = Topics.getTopicCopy(this.selectedTopic);
+        this.editor.topic = copy;
+        this.grid.setTopic(copy, true);
+        this.editMode = true;
+    }
+
     editTopic(uid) {
         this.editMode = true;
     }
+
 
     async deleteTopic() {
         let uid = this.topicsList.selected;
@@ -502,18 +496,8 @@ export class GridEditor extends ResizeWatcher {
         this.toggleAttribute("edit", value);
         setTimeout(() => {this.styles = {"--tran-time": "0s"}}, time * 1000);
     }
+
     get editMode(){return this._editMode;}
-
-
-    async selectSymbol(){
-        this.toggleAttribute("searching", true);
-        let result = await new Promise((resolve, reject) => {
-            this.symbolSeach.onclose = resolve;
-        })
-        this.toggleAttribute("searching", false);
-        return result;
-    }
-
 
     async initialise() {
         await Topics.initialise(async () => {
