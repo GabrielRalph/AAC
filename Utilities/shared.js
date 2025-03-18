@@ -349,8 +349,13 @@ export class Selection extends SvgPlus {
     }
 }
 
-export class SearchOptions extends SvgPlus {
-    
+export class OptionSearch extends SvgPlus {
+    constructor(data) {
+        super("option-search");
+        let {options} = data;
+        this.createChild("input");
+        this.createChild()
+    }
 }
 
 export class WBlock extends SvgPlus {

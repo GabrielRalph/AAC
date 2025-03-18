@@ -72,6 +72,8 @@ grid-editor[edit] grid-icon {
     width: var(--w);
     transform: translateX(calc(var(--w) + var(--gap)));
     transition: transform var(--tran-time) ease-in;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .popup-promt {
@@ -137,7 +139,6 @@ grid-editor[edit] .editor-panel {
     display: flex;
     flex-direction: column;
     gap: 0.5em;
-    overflow-y: scroll;
 }
 
 .edit-panel[i-hidden] w-block:not([name="Hidden"]) {
@@ -188,6 +189,7 @@ grid-editor[edit] .editor-panel {
 
 .topics-list w-block .main {
     overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .topics-head {
