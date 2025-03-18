@@ -251,6 +251,7 @@ grid-editor[edit] .editor-panel {
     pointer-events: all;
 }
 
+.topics-list:not([selected]) .topics-buttons,
 .topics-list .topics-buttons button:not([type="copy"]){
     opacity: 0;
     pointer-events: none;

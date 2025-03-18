@@ -15,7 +15,7 @@ function compare(a, b) {
     let getst = t => (t.owned ? "a" : "b") + (t.public ? "a" : "b")
     let [ast, bst] = [getst(a), getst(b)];
     if (ast == bst) {
-        return a.topicUID > b.topicUID ? 1 : -1;
+        return a.topicUID > b.topicUID ? -1 : 1;
     } else {
         return ast > bst ? 1 : -1;
     }
