@@ -143,7 +143,7 @@ class UploadForm extends SvgPlus {
 }
 
 export class SearchWidget extends SvgPlus {
-    constructor(){
+    constructor(root){
         super("div");
         this.class = "search-window";
         let block = this.createChild(WBlock, {class: "search-widget"});
@@ -197,13 +197,15 @@ export class SearchWidget extends SvgPlus {
             }
         }, "upload-img");
 
-        document.body.addEventListener("image-search-query", (e) => {
-            let getURL = async () => {
-                let res = await this.getSymbol();
-                return res?.url
-            }
-            e.queryPromise = getURL();
-        });
+        if (root instanceof Element) {
+            root.addEventListener("image-search-query", (e) => {
+                let getURL = async () => {
+                    let res = await this.getSymbol();
+                    return res?.url
+                }
+                e.queryPromise = getURL();
+            });
+        }
     }
 
     /** @param {boolean} bool */

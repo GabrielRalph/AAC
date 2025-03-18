@@ -397,7 +397,7 @@ export class GridEditor extends ResizeWatcher {
 
     constructor(){
         super("grid-editor");
-        this.symbolSeach = this.createChild(SearchWidget);
+        this.symbolSeach = this.createChild(SearchWidget, {}, this);
 
         let topicsList = this.createChild(TopicsList);
         this.topicsList = topicsList;
