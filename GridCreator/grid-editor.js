@@ -136,7 +136,7 @@ class EditPanel extends SvgPlus {
 
         for (let k in inputs) {
             let input = this.createChild(WBInput, {events: {
-                focus: () => input.container.toggleAttribute("error", false)
+                focus: () => input.toggleAttribute("error", false)
             }}, inputs[k])
             inputs[k] = input;
         }
