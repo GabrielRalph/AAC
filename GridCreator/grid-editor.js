@@ -121,7 +121,9 @@ class EditPanel extends SvgPlus {
                 return {url: "", id: ""};
             }
         }
-        let topicUIDS = Topics.getTopics().map(t => [t.name + ' - ' + t.ownerName, t.topicUID]);
+        let topicUIDS = Topics.getTopics();
+        topicUIDS.sort(compare)
+        topicUIDS = topicUIDS.map(t => [t.name + ' - ' + t.ownerName, t.topicUID]);
         let types = Topics.getGItemTypes().map(t => [t + (t == "topic" ? " (no utterance)" : ""), t])
         let inputs = {
             hidden: {name: "Hidden", defaultValue: item.hidden, type: "toggle"},

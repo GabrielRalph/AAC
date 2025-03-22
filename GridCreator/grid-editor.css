@@ -193,7 +193,6 @@ grid-editor[edit] .editor-panel {
 
 .topics-list w-block .main {
     overflow-y: scroll;
-    scrollbar-width: none;
 }
 
 .topics-head {

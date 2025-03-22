@@ -595,37 +595,37 @@ export class PromiseChain {
  * @param {HTMLElement} element
  */
 export async function attachScrollWatcher(element) {
-    let sh = 0;
-    let st = 0;
-    let ch = 0;
-    let init = true;
-    while (init) {
+    // let sh = 0;
+    // let st = 0;
+    // let ch = 0;
+    // let init = true;
+    // while (init) {
         
-        await new Promise(requestAnimationFrame);
+    //     await new Promise(requestAnimationFrame);
 
-        if (element.isConnected) {
+    //     if (element.isConnected) {
             
-            let nsh = element.scrollHeight;
-            let nst = element.scrollTop;
-            let nch = element.clientHeight
+    //         let nsh = element.scrollHeight;
+    //         let nst = element.scrollTop;
+    //         let nch = element.clientHeight
 
 
     
-            if (sh != nsh || st != nst || ch != nch ) {
-                let bbox = element.getBoundingClientRect();                
-                element.toggleAttribute("scrollable", nsh > nch);
-                element.style.setProperty("--bar-scale", nch/nsh);
-                element.style.setProperty("--bar-pos", (nst)/(nsh-nch));
-                element.style.setProperty("--height", bbox.height + "px");
-                element.style.setProperty("--y-start", bbox.y + "px")
-                element.style.setProperty("--x-end", (bbox.x + bbox.width) + "px")
-                element.style.setProperty("--x-start", bbox.x + "px")
-                element.style.setProperty("--scroll-height", nsh + "px")
-            }
+    //         if (sh != nsh || st != nst || ch != nch ) {
+    //             let bbox = element.getBoundingClientRect();                
+    //             element.toggleAttribute("scrollable", nsh > nch);
+    //             element.style.setProperty("--bar-scale", nch/nsh);
+    //             element.style.setProperty("--bar-pos", (nst)/(nsh-nch));
+    //             element.style.setProperty("--height", bbox.height + "px");
+    //             element.style.setProperty("--y-start", bbox.y + "px")
+    //             element.style.setProperty("--x-end", (bbox.x + bbox.width) + "px")
+    //             element.style.setProperty("--x-start", bbox.x + "px")
+    //             element.style.setProperty("--scroll-height", nsh + "px")
+    //         }
     
-            sh = nsh;
-            st = nst;
-            ch = nch;
-        }
-    }
+    //         sh = nsh;
+    //         st = nst;
+    //         ch = nch;
+    //     }
+    // }
 }
