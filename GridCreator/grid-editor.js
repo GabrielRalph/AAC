@@ -423,7 +423,7 @@ export class GridEditor extends ResizeWatcher {
             "icon-select": (e) => {
                 if (!this.editMode) {
                     let item = e.selectedItem;
-                    if (item.type == "topic") {
+                    if (Topics.isTopicItem(item.type)) {
                         topicsList.selectTopic(item.topicUID);
                         this.showTopic(item.topicUID);
                         e.stopImmediatePropagation()
@@ -498,10 +498,12 @@ export class GridEditor extends ResizeWatcher {
     }
 
     showTopic(uid, fast) {
-        let topic = Topics.getTopic(uid);
-        this.grid.setTopic(topic, fast);
-        this.selectedTopic = uid;
-        this.editor.topic = topic;
+        if (!this.editMode) {
+            let topic = Topics.getTopic(uid);
+            this.grid.setTopic(topic, fast);
+            this.selectedTopic = uid;
+            this.editor.topic = topic;
+        }
     }
 
 
