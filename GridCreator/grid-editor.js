@@ -69,7 +69,7 @@ class EditPanel extends SvgPlus {
                 inputs.type.toggleAttribute('error', true);
             }
 
-            if (inputs.type.value == "topic") {
+            if (Topics.isTopicItem(inputs.type.value)) {
                 if (!inputs.topicUID.value) {
                     inputs.topicUID.toggleAttribute('error', true);
                     valid = false;
