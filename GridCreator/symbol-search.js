@@ -276,11 +276,14 @@ export class SearchWidget extends SvgPlus {
     }
 
     async searchBest(text) {
-        this.searchInput.value = text;
-        await this.searchSymbols();
-        console.log(this.lastSearchIcons);
-        
-        return this.lastSearchIcons[0].symbol;
+        let bestSymbol = null;
+        if (text) {
+            this.searchInput.value = text;
+            await this.searchSymbols();
+            
+            bestSymbol = this.lastSearchIcons[0].symbol;
+        }
+        return bestSymbol;
     }
 
     showResults(items) {

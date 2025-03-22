@@ -61,17 +61,17 @@ class EditPanel extends SvgPlus {
         if (!inputs.hidden.value) {
             if (!inputs.displayValue.value) { 
                 valid = false;
-                inputs.displayValue.container.toggleAttribute('error', true);
+                inputs.displayValue.toggleAttribute('error', true);
             }
 
             if (!inputs.type.value) { 
                 valid = false;
-                inputs.type.container.toggleAttribute('error', true);
+                inputs.type.toggleAttribute('error', true);
             }
 
             if (inputs.type.value == "topic") {
                 if (!inputs.topicUID.value) {
-                    inputs.topicUID.container.toggleAttribute('error', true);
+                    inputs.topicUID.toggleAttribute('error', true);
                     valid = false;
                 }
             }
