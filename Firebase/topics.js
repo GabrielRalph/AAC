@@ -61,7 +61,7 @@
  * @property {string} ownerName
  */
 
-import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, startAfter, endBefore, addAuthChangeListener} from "./firebase-client.js"
+import {onValue, callFunction, push, set, get, child, equalTo, getUID, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, ref, update, initialise as _init, startAfter, endBefore, addAuthChangeListener} from "https://squidly.com.au/Firebase/firebase-client.js"
 /**
  * @type {Object.<GridSize, function>}
  */
